@@ -3,6 +3,8 @@ module github.com/slaveofcode/securi
 go 1.18
 
 require (
+	filippo.io/age v1.0.0
+	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.8.1
 	github.com/google/uuid v1.3.0
 	gorm.io/datatypes v1.0.7
@@ -11,8 +13,6 @@ require (
 )
 
 require (
-	filippo.io/age v1.0.0 // indirect
-	github.com/gin-contrib/cors v1.4.0 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
@@ -20,6 +20,7 @@ require (
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/goccy/go-json v0.9.10 // indirect
 	github.com/google/go-cmp v0.5.8 // indirect
+	github.com/h2non/filetype v1.1.3 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.12.1 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect

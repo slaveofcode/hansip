@@ -1,44 +1,34 @@
 package routes
 
 import (
-	"net/http"
-	"os"
-	"path/filepath"
-
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+	"github.com/slaveofcode/securi/repository/pg"
+	"github.com/slaveofcode/securi/routes/auth"
+	"github.com/slaveofcode/securi/routes/files"
+	"github.com/slaveofcode/securi/routes/middleware"
 )
 
-func Upload(c *gin.Context) {
-	file, err := c.FormFile("file")
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": "Unable to process the file:" + err.Error(),
-		})
-		return
-	}
-	fileExt := filepath.Ext(file.Filename)
-
-	// Generate random file name for the new uploaded file so it doesn't override the old file with same name
-	newFileName := uuid.New().String() + fileExt
-
-	dirPath := filepath.FromSlash(os.Getenv("UPLOAD_DIR_PATH"))
-	destPath := filepath.Join(dirPath, newFileName)
-	if err := c.SaveUploadedFile(file, destPath); err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"status":  false,
-			"message": "Unable to save the file:" + err.Error(),
-		})
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{
-		"status":  true,
-		"message": "File uploaded",
-	})
+func routeAuth(r *gin.RouterGroup, pgRepo *pg.RepositoryPostgres) {
+	r.POST("/register", auth.Register(pgRepo))
+	r.POST("/login", auth.Login(pgRepo))
+	r.POST("/refresh-token", auth.RefreshToken(pgRepo))
+	r.GET("/check", auth.CheckToken(pgRepo))
 }
 
-func Routes(routes *gin.Engine) {
-	routes.POST("/upload", Upload)
+func routeInternal(r *gin.RouterGroup, pgRepo *pg.RepositoryPostgres) {
+	r.POST("/files/request-group", files.CreateFileGroup(pgRepo))
+	r.POST("/files/upload", files.Upload(pgRepo))
+	r.POST("/files/compile-group", files.CreateFileGroup(pgRepo))
+}
+
+func Routes(routes *gin.Engine, pgRepo *pg.RepositoryPostgres) {
+	auth := routes.Group("/auth")
+	routeAuth(auth, pgRepo)
+
+	internal := routes.Group("/internal")
+	internal.Use(middleware.UserData(pgRepo))
+	routeInternal(internal, pgRepo)
+
+	routes.GET("/v/:code", Visit)
+	routes.POST("/d/:code", Download)
 }

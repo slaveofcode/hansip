@@ -42,6 +42,13 @@ func (pg *RepositoryPostgres) Migrate() error {
 
 	err := pg.db.AutoMigrate(
 		&models.User{},
+		&models.UserCredential{},
+		&models.UserKey{},
+		&models.AccessToken{},
+		&models.FileGroup{},
+		&models.FileItem{},
+		&models.FileGroupSignature{},
+		&models.ShortLink{},
 	)
 
 	if err != nil {

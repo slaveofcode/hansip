@@ -58,8 +58,8 @@ func RefreshToken(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 			TokenExpiredAt:        time.Now().Add(time.Hour),          // 1 hour
 			RefreshTokenExpiredAt: time.Now().Add(time.Hour * 24 * 7), // 7 days
 		}
-		res = db.Create(&acct)
 
+		res = db.Create(&acct)
 		if res.Error != nil {
 			log.Println(err)
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -68,6 +68,13 @@ func RefreshToken(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 			})
 			return
 		}
+
+		go func() {
+			res := db.Unscoped().Delete(&extAccToken)
+			if res.Error != nil {
+				log.Println(err)
+			}
+		}()
 
 		c.JSON(http.StatusOK, gin.H{
 			"status": true,

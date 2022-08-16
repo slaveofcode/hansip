@@ -24,7 +24,8 @@ type FileGroup struct {
 	ArchivePasscode       string      `gorm:"column:archivePasscode" json:"archivePasscode"`
 	MaxDownload           int         `gorm:"column:maxDownload" json:"maxDownload"`
 	DeleteAtDownloadTimes int         `gorm:"column:deleteAtDownloadTimes;index" json:"deleteAtDownloadTimes"`
-	ExpiredAt             time.Time   `gorm:"column:expiredAt;not null;index" json:"expiredAt"`
+	ExpiredAt             *time.Time  `gorm:"column:expiredAt;index" json:"expiredAt"`
+	BundledAt             *time.Time  `gorm:"column:bundledAt;index" json:"bundledAt"`
 	User                  *User       `gorm:"foreignKey:userId" json:"user,omitempty"`
 }
 

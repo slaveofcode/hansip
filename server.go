@@ -14,13 +14,13 @@ import (
 	appRoutes "github.com/slaveofcode/securi/routes"
 )
 
-func prepareUploadedDir() error {
-	path := os.Getenv("UPLOAD_DIR_PATH")
-	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
-		err := os.Mkdir(path, os.ModePerm)
-		return err
+func prepareTmpDirs(dirList []string) error {
+	for _, path := range dirList {
+		if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
+			err := os.MkdirAll(path, os.ModePerm)
+			return err
+		}
 	}
-
 	return nil
 }
 
@@ -40,8 +40,11 @@ func main() {
 	pgDB.(*pg.RepositoryPostgres).Migrate()
 	defer pgDB.Close()
 
-	if err := prepareUploadedDir(); err != nil {
-		panic("Unable to create uploaded directory:" + err.Error())
+	if err := prepareTmpDirs([]string{
+		os.Getenv("UPLOAD_DIR_PATH"),
+		os.Getenv("BUNDLED_DIR_PATH"),
+	}); err != nil {
+		panic("Unable to prepare temp. directories:" + err.Error())
 	}
 
 	if os.Getenv("ENV") == "production" {

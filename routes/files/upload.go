@@ -40,9 +40,9 @@ func Upload(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 		// Generate random file name for the new uploaded file so it doesn't override the old file with same name
 		newFileName := uuid.New().String() + fileExt
 
-		dirPath := filepath.FromSlash(os.Getenv("UPLOAD_DIR_PATH"))
-		destPath := filepath.Join(dirPath, newFileName)
-		if err := c.SaveUploadedFile(file, destPath); err != nil {
+		uploadPath := filepath.FromSlash(os.Getenv("UPLOAD_DIR_PATH"))
+		uploadFullPath := filepath.Join(uploadPath, newFileName)
+		if err := c.SaveUploadedFile(file, uploadFullPath); err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 				"status":  false,
 				"message": "Unable to save the file:" + err.Error(),
@@ -52,17 +52,9 @@ func Upload(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 
 		db := repo.GetDB()
 
-		savedFile, err := os.Open(destPath)
-		if err := c.SaveUploadedFile(file, destPath); err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-				"status":  false,
-				"message": "Unable to process the file:" + err.Error(),
-			})
-			return
-		}
-
+		savedFile, _ := os.Open(uploadFullPath)
 		filePreview := fileHelper.GetHeadFilePreviewValue(savedFile)
-		fileSize, _ := os.Stat(destPath)
+		fileSize, _ := os.Stat(uploadFullPath)
 
 		saveFileMeta := func() error {
 			return db.Transaction(func(tx *gorm.DB) error {
@@ -93,6 +85,7 @@ func Upload(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 
 		for {
 			err = saveFileMeta()
+			// TODO: Need better recognition for handling serialize transaction error
 			serializeErrStr := "ERROR: could not serialize access due to concurrent update (SQLSTATE 40001)"
 			if err != nil && err.Error() != serializeErrStr {
 				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{

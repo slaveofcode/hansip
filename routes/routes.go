@@ -18,7 +18,7 @@ func routeAuth(r *gin.RouterGroup, pgRepo *pg.RepositoryPostgres) {
 func routeInternal(r *gin.RouterGroup, pgRepo *pg.RepositoryPostgres) {
 	r.POST("/files/request-group", files.CreateFileGroup(pgRepo))
 	r.POST("/files/upload", files.Upload(pgRepo))
-	r.POST("/files/compile-group", files.CreateFileGroup(pgRepo))
+	r.POST("/files/bundle-group", files.BundleFileGroup(pgRepo))
 }
 
 func Routes(routes *gin.Engine, pgRepo *pg.RepositoryPostgres) {

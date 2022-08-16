@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/slaveofcode/securi/repository/pg"
 	"github.com/slaveofcode/securi/repository/pg/models"
 )
@@ -60,4 +61,8 @@ func UserData(pgRepo *pg.RepositoryPostgres) func(ctx *gin.Context) {
 
 		ctx.Set(CTX_USER_ID, acct.UserId.String())
 	}
+}
+
+func GetUserId(c *gin.Context) (uuid.UUID, error) {
+	return uuid.Parse(c.GetString(CTX_USER_ID))
 }

@@ -10,8 +10,7 @@ import (
 )
 
 type FileGroupParam struct {
-	ArchiveType      models.ArchiveType `json:"archiveType" binding:"required"`
-	DownloadPassword string             `json:"downloadPassword" binding:"omitempty,gte=6,lte=100"`
+	ArchiveType models.ArchiveType `json:"archiveType" binding:"required"`
 }
 
 func CreateFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {

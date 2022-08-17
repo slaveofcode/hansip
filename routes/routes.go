@@ -6,6 +6,7 @@ import (
 	"github.com/slaveofcode/securi/routes/auth"
 	"github.com/slaveofcode/securi/routes/files"
 	"github.com/slaveofcode/securi/routes/middleware"
+	"github.com/slaveofcode/securi/routes/visit"
 )
 
 func routeAuth(r *gin.RouterGroup, pgRepo *pg.RepositoryPostgres) {
@@ -29,6 +30,7 @@ func Routes(routes *gin.Engine, pgRepo *pg.RepositoryPostgres) {
 	internal.Use(middleware.UserData(pgRepo))
 	routeInternal(internal, pgRepo)
 
-	routes.GET("/v/:code", Visit)
-	routes.POST("/d/:code", Download)
+	routes.GET("/view/:code", visit.View(pgRepo))
+	routes.POST("/view/:code", visit.ViewProtected(pgRepo))
+	routes.POST("/download/:code", visit.Download(pgRepo))
 }

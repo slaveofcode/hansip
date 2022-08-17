@@ -13,14 +13,16 @@ import (
 	"github.com/slaveofcode/securi/repository/pg"
 	"github.com/slaveofcode/securi/repository/pg/models"
 	"github.com/slaveofcode/securi/routes/middleware"
+	"github.com/slaveofcode/securi/utils/shortlink"
 	"github.com/yeka/zip"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type BundleFileGroupParam struct {
-	FileGroupId uuid.UUID `json:"fileGroupId" binding:"required"`
-	ExpiredAt   string    `json:"expiredAt" binding:"required,datetime=2006-01-02T15:04:05Z07:00"` // format UTC: 2021-07-18T10:00:00.000Z
-	Passcode    string    `json:"passcode" binding:"required,gte=6,lte=100"`
+	FileGroupId      uuid.UUID `json:"fileGroupId" binding:"required"`
+	ExpiredAt        string    `json:"expiredAt" binding:"required,datetime=2006-01-02T15:04:05Z07:00"` // format UTC: 2021-07-18T10:00:00.000Z
+	Passcode         string    `json:"passcode" binding:"required,gte=6,lte=100"`
+	DownloadPassword string    `json:"downloadPassword" binding:"omitempty,gte=6,lte=100"`
 }
 
 func BundleFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
@@ -143,12 +145,35 @@ func BundleFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 			return
 		}
 
+		pinCode := ""
+
+		if len(bodyParams.DownloadPassword) > 0 {
+			pinEnc, err := bcrypt.GenerateFromPassword([]byte(bodyParams.DownloadPassword), bcrypt.DefaultCost)
+			if err != nil {
+				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+					"success": false,
+					"message": "Unable to bundle files:" + err.Error(),
+				})
+				return
+			}
+
+			pinCode = string(pinEnc)
+		}
+
+		shortLink, err := shortlink.MakeNewCode(&fg.ID, pinCode, db)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+				"success": false,
+				"message": "Unable to create download link:" + err.Error(),
+			})
+			return
+		}
+
 		c.JSON(http.StatusCreated, gin.H{
 			"status": true,
 			"data": gin.H{
-				"fgId":        fg.ID,
 				"expiredAt":   fg.ExpiredAt,
-				"downloadUrl": "https://example.com/v/sxsxs",
+				"downloadUrl": shortlink.MakeURL(shortLink),
 			},
 		})
 	}

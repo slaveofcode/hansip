@@ -27,6 +27,8 @@ type FileGroup struct {
 	ExpiredAt             *time.Time  `gorm:"column:expiredAt;index" json:"expiredAt"`
 	BundledAt             *time.Time  `gorm:"column:bundledAt;index" json:"bundledAt"`
 	User                  *User       `gorm:"foreignKey:userId" json:"user,omitempty"`
+
+	FileItems []FileItem
 }
 
 func (m *FileGroup) TableName() string {

@@ -122,8 +122,6 @@ func BundleFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 		}
 
 		zipCompressor.Flush()
-
-		// remove file after added to zip
 		zipCompressor.Close()
 
 		expDate, err := time.Parse(time.RFC3339, bodyParams.ExpiredAt)

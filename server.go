@@ -18,7 +18,7 @@ func prepareTmpDirs(dirList []string) error {
 	for _, path := range dirList {
 		if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
 			err := os.MkdirAll(path, os.ModePerm)
-			return err
+			log.Println("Unable create TMP dir:", err.Error())
 		}
 	}
 	return nil
@@ -56,6 +56,7 @@ func main() {
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowAllOrigins = true
 	corsConfig.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
+	corsConfig.ExposeHeaders = []string{"Content-Disposition"}
 	routes.Use(cors.New(corsConfig))
 
 	routes.MaxMultipartMemory = 10 << 20 // 10 MiB

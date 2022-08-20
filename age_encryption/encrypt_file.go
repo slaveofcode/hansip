@@ -101,7 +101,6 @@ func EncryptFile(filePath, locationPath string) (string, error) {
 }
 
 func DecryptFile(filePath, locationPath string) (string, error) {
-	log.Println("Open file:", filePath)
 	f, err := os.Open(filePath)
 	if err != nil {
 		return "", err
@@ -115,7 +114,6 @@ func DecryptFile(filePath, locationPath string) (string, error) {
 
 	destDecFile := filepath.Join(locationPath, realFName)
 	fOut, err := os.Create(destDecFile)
-	log.Println("Write file:", destDecFile)
 	if err != nil {
 		return "", err
 	}
@@ -131,12 +129,10 @@ func DecryptFile(filePath, locationPath string) (string, error) {
 
 	r, err := age.Decrypt(f, identity)
 	if err != nil {
-		log.Println("Error decrypt")
 		return "", err
 	}
 
 	if _, err = io.Copy(fOut, r); err != nil {
-		log.Println("Error copy", err.Error())
 		return "", err
 	}
 

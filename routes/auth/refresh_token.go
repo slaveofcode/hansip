@@ -61,7 +61,6 @@ func RefreshToken(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 
 		res = db.Create(&acct)
 		if res.Error != nil {
-			log.Println(err)
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 				"success": false,
 				"message": "Unable to process refresh token",
@@ -72,7 +71,7 @@ func RefreshToken(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 		go func() {
 			res := db.Unscoped().Delete(&extAccToken)
 			if res.Error != nil {
-				log.Println(err)
+				log.Println("Error delete expired access token:", err)
 			}
 		}()
 

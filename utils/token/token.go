@@ -35,7 +35,7 @@ func GetFreshTokens(db *gorm.DB) (*TokenInfo, error) {
 		newRefToken := GenerateSecureToken(REFRESH_TOKEN_LENGTH)
 
 		var acct models.AccessToken
-		res := db.Where("token = ? OR refreshToken = ?", newAccToken, newRefToken).First(&acct)
+		res := db.Where(`token = ? OR "refreshToken" = ?`, newAccToken, newRefToken).First(&acct)
 
 		if res.RowsAffected == 0 {
 			return &TokenInfo{

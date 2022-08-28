@@ -14,11 +14,16 @@ import (
 	appRoutes "github.com/slaveofcode/securi/routes"
 )
 
-func prepareTmpDirs(dirList []string) error {
+func prepareDirs(dirList []string) error {
 	for _, path := range dirList {
-		if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
+		var err error
+		if _, err = os.Stat(path); errors.Is(err, os.ErrNotExist) {
 			err := os.MkdirAll(path, os.ModePerm)
-			log.Println("Unable create TMP dir:", err.Error())
+			if err != nil {
+				log.Println("Unable create TMP dir:", err.Error())
+				return err
+			}
+
 		}
 	}
 	return nil
@@ -40,7 +45,7 @@ func main() {
 	pgDB.(*pg.RepositoryPostgres).Migrate()
 	defer pgDB.Close()
 
-	if err := prepareTmpDirs([]string{
+	if err := prepareDirs([]string{
 		os.Getenv("UPLOAD_DIR_PATH"),
 		os.Getenv("BUNDLED_DIR_PATH"),
 	}); err != nil {

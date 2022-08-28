@@ -19,7 +19,7 @@ type FileResponse struct {
 }
 
 type FileOpenParam struct {
-	Password string `json:"password" binding:"required"`
+	Password string `json:"password" binding:"omitempty"`
 }
 
 func getFiles(db *gorm.DB, fileGroupId *uuid.UUID) ([]FileResponse, error) {

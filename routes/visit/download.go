@@ -37,7 +37,7 @@ func Download(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 		res := db.Preload("FileGroup").Where(`"shortCode" = ?`, code).First(&shortLink)
 		if res.RowsAffected <= 0 {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-				"status":  false,
+				"success": false,
 				"message": "Unknown file",
 			})
 			return
@@ -48,7 +48,7 @@ func Download(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 			err := bcrypt.CompareHashAndPassword([]byte(shortLink.PIN), []byte(bodyParams.Password))
 			if err != nil {
 				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
-					"status":  false,
+					"success": false,
 					"message": "Invalid Password" + err.Error(),
 				})
 				return
@@ -60,7 +60,7 @@ func Download(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 		bundledFullPath := filepath.Join(bundledPath, shortLink.FileGroupId.String()+".zip")
 		if _, err := os.Stat(bundledFullPath); err != nil {
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
-				"status":  false,
+				"success": false,
 				"message": "File not found",
 			})
 			return
@@ -79,7 +79,7 @@ func Download(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 			check, _ := strconv.ParseBool(query.CheckOnly)
 			if check {
 				c.JSON(http.StatusOK, gin.H{
-					"status":  true,
+					"success": true,
 					"message": "File Ready",
 				})
 				return

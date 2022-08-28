@@ -54,7 +54,7 @@ func View(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 		res := db.Where(`"shortCode" = ?`, code).First(&shortLink)
 		if res.RowsAffected <= 0 {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-				"status":  false,
+				"success": false,
 				"message": "Unknown file",
 			})
 			return
@@ -67,7 +67,7 @@ func View(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"status":      true,
+			"success":     true,
 			"isProtected": isProtected,
 			"data": gin.H{
 				"files": files,
@@ -95,7 +95,7 @@ func ViewProtected(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 		res := db.Where(`"shortCode" = ?`, code).First(&shortLink)
 		if res.RowsAffected <= 0 {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-				"status":  false,
+				"success": false,
 				"message": "Unknown file",
 			})
 			return
@@ -104,7 +104,7 @@ func ViewProtected(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 		err := bcrypt.CompareHashAndPassword([]byte(shortLink.PIN), []byte(bodyParams.Password))
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
-				"status":  false,
+				"success": false,
 				"message": "Invalid Password" + err.Error(),
 			})
 			return
@@ -113,7 +113,7 @@ func ViewProtected(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 		files, _ := getFiles(db, shortLink.FileGroupId)
 
 		c.JSON(http.StatusOK, gin.H{
-			"status": true,
+			"success": true,
 			"data": gin.H{
 				"files": files,
 			},

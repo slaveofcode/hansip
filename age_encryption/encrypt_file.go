@@ -53,7 +53,7 @@ func errorf(format string, v ...interface{}) {
 	log.Printf("age: error: "+format, v...)
 }
 
-func EncryptFile(filePath, locationPath string) (string, error) {
+func EncryptFile(filePath, locationPath string, publicKeys []string) (string, error) {
 	f, err := os.Open(filePath)
 	if err != nil {
 		return "", err
@@ -66,13 +66,16 @@ func EncryptFile(filePath, locationPath string) (string, error) {
 		return "", err
 	}
 
-	pub, _ := parseIdentity()
-	rec, err := age.ParseX25519Recipient(pub)
-	if err != nil {
-		return "", err
+	var recipients []age.Recipient
+	for _, publicKey := range publicKeys {
+		rec, err := age.ParseX25519Recipient(publicKey)
+		if err != nil {
+			return "", err
+		}
+		recipients = append(recipients, rec)
 	}
 
-	wc, err := age.Encrypt(fe, rec)
+	wc, err := age.Encrypt(fe, recipients...)
 	if err != nil {
 		return "", err
 	}

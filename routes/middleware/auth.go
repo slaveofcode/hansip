@@ -24,7 +24,7 @@ func UserData(pgRepo *pg.RepositoryPostgres) func(ctx *gin.Context) {
 		h := requestHeader{}
 		if err := ctx.ShouldBindHeader(&h); err != nil {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"status":  false,
+				"success": false,
 				"message": "Unauthorized",
 			})
 		}
@@ -32,7 +32,7 @@ func UserData(pgRepo *pg.RepositoryPostgres) func(ctx *gin.Context) {
 		bearers := strings.Split(h.Authorization, " ")
 		if len(bearers) <= 1 {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"status":  false,
+				"success": false,
 				"message": "Unauthorized",
 			})
 		}
@@ -47,14 +47,14 @@ func UserData(pgRepo *pg.RepositoryPostgres) func(ctx *gin.Context) {
 
 		if res.RowsAffected <= 0 {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"status":  false,
+				"success": false,
 				"message": "Unauthorized",
 			})
 		}
 
 		if acct.TokenExpiredAt.Before(time.Now()) {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"status":  false,
+				"success": false,
 				"message": "Unauthorized",
 			})
 		}

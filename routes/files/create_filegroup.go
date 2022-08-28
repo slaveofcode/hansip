@@ -53,7 +53,7 @@ func CreateFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 		}
 
 		c.JSON(http.StatusCreated, gin.H{
-			"status": true,
+			"success": true,
 			"data": gin.H{
 				"fgId": fg.ID,
 			},

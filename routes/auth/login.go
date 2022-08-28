@@ -86,7 +86,7 @@ func Login(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"status": true,
+			"success": true,
 			"data": gin.H{
 				"accessToken":  acct.Token,
 				"refreshToken": acct.RefreshToken,

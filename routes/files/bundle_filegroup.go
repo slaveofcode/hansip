@@ -100,6 +100,7 @@ func BundleFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 			if res.RowsAffected > 0 {
 				for _, key := range userKeys {
 					userPubKeys = append(userPubKeys, key.Public)
+					fileGroup.SharedToUserIds = append(fileGroup.SharedToUserIds, key.ID.String())
 				}
 			}
 		}
@@ -138,6 +139,8 @@ func BundleFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 		zipCompressor.Flush()
 		zipCompressor.Close()
 
+		fileGroup.FileKey = bundledFullPath
+
 		// set age encryption first if user exist
 		if len(userPubKeys) > 0 {
 			filePathEnc, err := age_encryption.EncryptFile(bundledFullPath, bundledPath, userPubKeys)
@@ -149,7 +152,7 @@ func BundleFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 				return
 			}
 
-			log.Println("File encrypted", filePathEnc)
+			fileGroup.FileKey = filePathEnc
 		}
 
 		expDate, err := time.Parse(time.RFC3339, bodyParams.ExpiredAt)

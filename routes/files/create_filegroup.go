@@ -41,6 +41,7 @@ func CreateFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 			MaxDownload:           0,
 			DeleteAtDownloadTimes: 0,
 			TotalFiles:            0,
+			SharedToUserIds:       []string{},
 		}
 
 		res := db.Create(&fg)

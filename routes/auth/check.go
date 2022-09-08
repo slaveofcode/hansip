@@ -19,7 +19,7 @@ func CheckToken(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 		h := requestHeader{}
 		if err := c.ShouldBindHeader(&h); err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"status":  false,
+				"success": false,
 				"message": "Unauthorized",
 			})
 		}
@@ -27,7 +27,7 @@ func CheckToken(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 		bearers := strings.Split(h.Authorization, " ")
 		if len(bearers) <= 1 {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"status":  false,
+				"success": false,
 				"message": "Unauthorized",
 			})
 		}
@@ -42,20 +42,20 @@ func CheckToken(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 
 		if res.RowsAffected <= 0 {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"status":  false,
+				"success": false,
 				"message": "Unauthorized",
 			})
 		}
 
 		if acct.TokenExpiredAt.Before(time.Now()) {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"status":  false,
+				"success": false,
 				"message": "Unauthorized",
 			})
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"status": true,
+			"success": true,
 		})
 	}
 }

@@ -20,7 +20,7 @@ func Upload(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 		fileGroupId, err := uuid.Parse(c.PostForm("fileGroupId"))
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-				"status":  false,
+				"success": false,
 				"message": "Invalid group file:" + err.Error(),
 			})
 			return
@@ -29,7 +29,7 @@ func Upload(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 		file, err := c.FormFile("file")
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-				"status":  false,
+				"success": false,
 				"message": "Unable to process the file:" + err.Error(),
 			})
 			return
@@ -44,7 +44,7 @@ func Upload(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 		uploadFullPath := filepath.Join(uploadPath, newFileName)
 		if err := c.SaveUploadedFile(file, uploadFullPath); err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-				"status":  false,
+				"success": false,
 				"message": "Unable to save the file:" + err.Error(),
 			})
 			return
@@ -89,7 +89,7 @@ func Upload(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 			serializeErrStr := "ERROR: could not serialize access due to concurrent update (SQLSTATE 40001)"
 			if err != nil && err.Error() != serializeErrStr {
 				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-					"status":  false,
+					"success": false,
 					"message": "Unable to process the file:" + err.Error(),
 				})
 				return
@@ -105,7 +105,7 @@ func Upload(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 		// res, err := age_encryption.EncryptFile(destPath, dirPath)
 		// if err != nil {
 		// 	c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-		// 		"status":  false,
+		// 		"success":  false,
 		// 		"message": "Unable to encrypt the file:" + err.Error(),
 		// 	})
 		// 	return
@@ -114,14 +114,14 @@ func Upload(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 		// res, err := age_encryption.DecryptFile(destPath, dirPath)
 		// if err != nil {
 		// 	c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-		// 		"status":  false,
+		// 		"success":  false,
 		// 		"message": "Unable to encrypt the file:" + err.Error(),
 		// 	})
 		// 	return
 		// }
 
 		c.JSON(http.StatusCreated, gin.H{
-			"status":  true,
+			"success": true,
 			"message": "File uploaded",
 		})
 	}

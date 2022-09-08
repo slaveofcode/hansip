@@ -4,8 +4,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/slaveofcode/securi/repository/pg"
 	"github.com/slaveofcode/securi/routes/auth"
+	"github.com/slaveofcode/securi/routes/download"
 	"github.com/slaveofcode/securi/routes/files"
 	"github.com/slaveofcode/securi/routes/middleware"
+	"github.com/slaveofcode/securi/routes/user"
 	"github.com/slaveofcode/securi/routes/visit"
 )
 
@@ -20,6 +22,8 @@ func routeInternal(r *gin.RouterGroup, pgRepo *pg.RepositoryPostgres) {
 	r.POST("/files/request-group", files.CreateFileGroup(pgRepo))
 	r.POST("/files/upload", files.Upload(pgRepo))
 	r.POST("/files/bundle-group", files.BundleFileGroup(pgRepo))
+
+	r.GET("/users/query", user.UserQueries(pgRepo))
 }
 
 func Routes(routes *gin.Engine, pgRepo *pg.RepositoryPostgres) {
@@ -32,5 +36,6 @@ func Routes(routes *gin.Engine, pgRepo *pg.RepositoryPostgres) {
 
 	routes.GET("/view/:code", visit.View(pgRepo))
 	routes.POST("/view/:code", visit.ViewProtected(pgRepo))
-	routes.POST("/download/:code", visit.Download(pgRepo))
+
+	routes.POST("/download/do/:code", download.Download(pgRepo))
 }

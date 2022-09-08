@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 type ArchiveType string
@@ -27,6 +28,9 @@ type FileGroup struct {
 	ExpiredAt             *time.Time  `gorm:"column:expiredAt;index" json:"expiredAt"`
 	BundledAt             *time.Time  `gorm:"column:bundledAt;index" json:"bundledAt"`
 	User                  *User       `gorm:"foreignKey:userId" json:"user,omitempty"`
+
+	FileKey         string         `gorm:"column:fileKey" json:"fileKey"`
+	SharedToUserIds pq.StringArray `gorm:"column:sharedUserIds;type:varchar[];index" json:"sharedUserIds"`
 
 	FileItems []FileItem
 }

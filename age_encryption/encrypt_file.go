@@ -53,7 +53,7 @@ func errorf(format string, v ...interface{}) {
 	log.Printf("age: error: "+format, v...)
 }
 
-func EncryptFile(filePath, locationPath string) (string, error) {
+func EncryptFile(filePath, locationPath string, publicKeys []string) (string, error) {
 	f, err := os.Open(filePath)
 	if err != nil {
 		return "", err
@@ -66,13 +66,16 @@ func EncryptFile(filePath, locationPath string) (string, error) {
 		return "", err
 	}
 
-	pub, _ := parseIdentity()
-	rec, err := age.ParseX25519Recipient(pub)
-	if err != nil {
-		return "", err
+	var recipients []age.Recipient
+	for _, publicKey := range publicKeys {
+		rec, err := age.ParseX25519Recipient(publicKey)
+		if err != nil {
+			return "", err
+		}
+		recipients = append(recipients, rec)
 	}
 
-	wc, err := age.Encrypt(fe, rec)
+	wc, err := age.Encrypt(fe, recipients...)
 	if err != nil {
 		return "", err
 	}
@@ -100,7 +103,7 @@ func EncryptFile(filePath, locationPath string) (string, error) {
 	return destEncFile, nil
 }
 
-func DecryptFile(filePath, locationPath string) (string, error) {
+func DecryptFile(filePath, locationPath, secretKey string) (string, error) {
 	f, err := os.Open(filePath)
 	if err != nil {
 		return "", err
@@ -110,7 +113,7 @@ func DecryptFile(filePath, locationPath string) (string, error) {
 
 	fName := filepath.Base(filePath)
 	// realFName := fName[:len(fName)-len(filepath.Ext(fName))]
-	realFName := strings.Trim(fName, ".age") + ".md"
+	realFName := strings.Trim(fName, ".age")
 
 	destDecFile := filepath.Join(locationPath, realFName)
 	fOut, err := os.Create(destDecFile)
@@ -120,8 +123,8 @@ func DecryptFile(filePath, locationPath string) (string, error) {
 
 	defer fOut.Close()
 
-	_, sec := parseIdentity()
-	identity, err := age.ParseX25519Identity(sec)
+	// _, sec := parseIdentity()
+	identity, err := age.ParseX25519Identity(secretKey)
 	// identities, err := age.ParseIdentities(strings.NewReader(sec))
 	if err != nil {
 		return "", err

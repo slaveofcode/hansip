@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/slaveofcode/securi/age_encryption"
 	"github.com/slaveofcode/securi/repository/pg"
 	"github.com/slaveofcode/securi/repository/pg/models"
 	"github.com/slaveofcode/securi/routes/middleware"
@@ -23,6 +24,7 @@ type BundleFileGroupParam struct {
 	ExpiredAt        string    `json:"expiredAt" binding:"required,datetime=2006-01-02T15:04:05Z07:00"` // format UTC: 2021-07-18T10:00:00.000Z
 	Passcode         string    `json:"passcode" binding:"required,gte=6,lte=100"`
 	DownloadPassword string    `json:"downloadPassword" binding:"omitempty,gte=6,lte=100"`
+	UserIds          []string  `json:"userIds" binding:"omitempty"`
 }
 
 func BundleFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
@@ -56,11 +58,11 @@ func BundleFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 
 		db := repo.GetDB()
 
-		var fg models.FileGroup
+		var fileGroup models.FileGroup
 		res := db.Where(
 			`id = ? AND "userId" = ? AND "bundledAt" IS NULL`,
 			bodyParams.FileGroupId.String(),
-			userId.String()).First(&fg)
+			userId.String()).First(&fileGroup)
 
 		if res.Error != nil || res.RowsAffected <= 0 {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -71,7 +73,7 @@ func BundleFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 		}
 
 		var fileItems []models.FileItem
-		res = db.Where(`"fileGroupId" = ?`, fg.ID.String()).Find(&fileItems)
+		res = db.Where(`"fileGroupId" = ?`, fileGroup.ID.String()).Find(&fileItems)
 		if res.Error != nil || res.RowsAffected <= 0 {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 				"success": false,
@@ -81,7 +83,7 @@ func BundleFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 		}
 
 		bundledPath := filepath.FromSlash(os.Getenv("BUNDLED_DIR_PATH"))
-		bundledFullPath := filepath.Join(bundledPath, fg.ID.String()+".zip")
+		bundledFullPath := filepath.Join(bundledPath, fileGroup.ID.String()+".zip")
 		zipFile, err := os.Create(bundledFullPath)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -91,10 +93,29 @@ func BundleFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 			return
 		}
 
+		userPubKeys := []string{}
+		if len(bodyParams.UserIds) > 0 {
+			// add user self first, so owner file can be downloaded too
+			userShares := bodyParams.UserIds
+			userShares = append(userShares, userId.String())
+
+			var userKeys []models.UserKey
+			res := db.Where(`"userId" IN ?`, userShares).Find(&userKeys)
+			if res.RowsAffected > 0 {
+
+				for _, key := range userKeys {
+					userPubKeys = append(userPubKeys, key.Public)
+					fileGroup.SharedToUserIds = append(fileGroup.SharedToUserIds, key.UserId.String())
+				}
+			}
+
+		}
+
 		uploadPath := filepath.FromSlash(os.Getenv("UPLOAD_DIR_PATH"))
 		zipCompressor := zip.NewWriter(zipFile)
 		for _, item := range fileItems {
 			filePath := filepath.Join(uploadPath, item.Filename)
+
 			f, err := os.Open(filePath)
 			if err != nil {
 				// skip
@@ -124,17 +145,35 @@ func BundleFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 		zipCompressor.Flush()
 		zipCompressor.Close()
 
+		fileGroup.FileKey = bundledFullPath
+
+		// set age encryption first if user exist
+		if len(userPubKeys) > 0 {
+			log.Println("userKeys:", userPubKeys)
+			filePathEnc, err := age_encryption.EncryptFile(bundledFullPath, bundledPath, userPubKeys)
+			if err != nil {
+				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+					"success": false,
+					"message": "Unable to encrypt the file:" + err.Error(),
+				})
+				return
+			}
+
+			fileGroup.FileKey = filePathEnc
+			os.Remove(bundledFullPath)
+		}
+
 		expDate, err := time.Parse(time.RFC3339, bodyParams.ExpiredAt)
 		if err != nil {
 			expDate = time.Now().Add(time.Hour * 24 * 30) // 30 days default
 		}
 
 		now := time.Now()
-		fg.ArchivePasscode = string(passcode)
-		fg.BundledAt = &now
-		fg.ExpiredAt = &expDate
+		fileGroup.ArchivePasscode = string(passcode)
+		fileGroup.BundledAt = &now
+		fileGroup.ExpiredAt = &expDate
 
-		res = db.Save(&fg)
+		res = db.Save(&fileGroup)
 		if res.Error != nil || res.RowsAffected <= 0 {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 				"success": false,
@@ -158,7 +197,7 @@ func BundleFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 			pinCode = string(pinEnc)
 		}
 
-		shortLink, err := shortlink.MakeNewCode(&fg.ID, pinCode, db)
+		shortLink, err := shortlink.MakeNewCode(&fileGroup.ID, pinCode, db)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 				"success": false,
@@ -168,9 +207,9 @@ func BundleFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 		}
 
 		c.JSON(http.StatusCreated, gin.H{
-			"status": true,
+			"success": true,
 			"data": gin.H{
-				"expiredAt":   fg.ExpiredAt,
+				"expiredAt":   fileGroup.ExpiredAt,
 				"downloadUrl": shortlink.MakeURL(shortLink),
 			},
 		})

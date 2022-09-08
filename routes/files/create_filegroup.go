@@ -41,6 +41,7 @@ func CreateFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 			MaxDownload:           0,
 			DeleteAtDownloadTimes: 0,
 			TotalFiles:            0,
+			SharedToUserIds:       []string{},
 		}
 
 		res := db.Create(&fg)
@@ -53,7 +54,7 @@ func CreateFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 		}
 
 		c.JSON(http.StatusCreated, gin.H{
-			"status": true,
+			"success": true,
 			"data": gin.H{
 				"fgId": fg.ID,
 			},

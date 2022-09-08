@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/slaveofcode/securi/repository/pg"
 	"github.com/slaveofcode/securi/repository/pg/models"
+	userHelper "github.com/slaveofcode/securi/utils/user"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -19,7 +20,8 @@ type FileResponse struct {
 }
 
 type FileOpenParam struct {
-	Password string `json:"password" binding:"omitempty"`
+	Password     string `json:"downloadPassword" binding:"omitempty"`
+	UserPassword string `json:"accountPassword" binding:"omitempty"`
 }
 
 func getFiles(db *gorm.DB, fileGroupId *uuid.UUID) ([]FileResponse, error) {
@@ -51,7 +53,7 @@ func View(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 		db := pgRepo.GetDB()
 
 		var shortLink models.ShortLink
-		res := db.Where(`"shortCode" = ?`, code).First(&shortLink)
+		res := db.Preload("FileGroup").Where(`"shortCode" = ?`, code).First(&shortLink)
 		if res.RowsAffected <= 0 {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"success": false,
@@ -66,9 +68,12 @@ func View(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 			files, _ = getFiles(db, shortLink.FileGroupId)
 		}
 
+		isNeedLogin := len(shortLink.FileGroup.SharedToUserIds) > 0
+
 		c.JSON(http.StatusOK, gin.H{
 			"success":     true,
 			"isProtected": isProtected,
+			"isNeedLogin": isNeedLogin,
 			"data": gin.H{
 				"files": files,
 			},
@@ -92,7 +97,7 @@ func ViewProtected(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 		db := pgRepo.GetDB()
 
 		var shortLink models.ShortLink
-		res := db.Where(`"shortCode" = ?`, code).First(&shortLink)
+		res := db.Preload("FileGroup").Where(`"shortCode" = ?`, code).First(&shortLink)
 		if res.RowsAffected <= 0 {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"success": false,
@@ -105,7 +110,50 @@ func ViewProtected(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
 				"success": false,
-				"message": "Invalid Password" + err.Error(),
+				"message": "Invalid Page Password" + err.Error(),
+			})
+			return
+		}
+
+		isAllowedToOpen := false
+		isNeedLogin := len(shortLink.FileGroup.SharedToUserIds) > 0
+		var user *models.User = nil
+		if isNeedLogin {
+			tokenHeader := c.Request.Header["Authorization"]
+			if len(tokenHeader) > 0 {
+				user, err = userHelper.GetUserFromHeaderAuth(pgRepo, tokenHeader[0])
+				if err != nil {
+					c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+						"success": false,
+						"message": "Please login to continue download" + err.Error(),
+					})
+					return
+				}
+
+				for _, uid := range shortLink.FileGroup.SharedToUserIds {
+					if uid == user.ID.String() {
+						isAllowedToOpen = true
+						break
+					}
+				}
+			}
+		}
+
+		if !isAllowedToOpen {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+				"success": false,
+				"message": "You're not allowed to download",
+			})
+			return
+		}
+
+		var userCred models.UserCredential
+		res = db.Where(`"userId" = ?`, user.ID.String()).First(&userCred)
+		err = bcrypt.CompareHashAndPassword([]byte(userCred.CredentialValue), []byte(bodyParams.UserPassword))
+		if res.RowsAffected == 0 || err != nil {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+				"success": false,
+				"message": "Invalid Account Password",
 			})
 			return
 		}

@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/slaveofcode/securi/repository/pg"
 	"github.com/slaveofcode/securi/routes/auth"
+	"github.com/slaveofcode/securi/routes/download"
 	"github.com/slaveofcode/securi/routes/files"
 	"github.com/slaveofcode/securi/routes/middleware"
 	"github.com/slaveofcode/securi/routes/user"
@@ -35,5 +36,6 @@ func Routes(routes *gin.Engine, pgRepo *pg.RepositoryPostgres) {
 
 	routes.GET("/view/:code", visit.View(pgRepo))
 	routes.POST("/view/:code", visit.ViewProtected(pgRepo))
-	routes.POST("/download/:code", visit.Download(pgRepo))
+
+	routes.POST("/download/do/:code", download.Download(pgRepo))
 }

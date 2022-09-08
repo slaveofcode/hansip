@@ -95,14 +95,20 @@ func BundleFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 
 		userPubKeys := []string{}
 		if len(bodyParams.UserIds) > 0 {
+			// add user self first, so owner file can be downloaded too
+			userShares := bodyParams.UserIds
+			userShares = append(userShares, userId.String())
+
 			var userKeys []models.UserKey
-			res := db.Where(`"userId" IN ?`, bodyParams.UserIds).Find(&userKeys)
+			res := db.Where(`"userId" IN ?`, userShares).Find(&userKeys)
 			if res.RowsAffected > 0 {
+
 				for _, key := range userKeys {
 					userPubKeys = append(userPubKeys, key.Public)
-					fileGroup.SharedToUserIds = append(fileGroup.SharedToUserIds, key.ID.String())
+					fileGroup.SharedToUserIds = append(fileGroup.SharedToUserIds, key.UserId.String())
 				}
 			}
+
 		}
 
 		uploadPath := filepath.FromSlash(os.Getenv("UPLOAD_DIR_PATH"))
@@ -143,6 +149,7 @@ func BundleFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 
 		// set age encryption first if user exist
 		if len(userPubKeys) > 0 {
+			log.Println("userKeys:", userPubKeys)
 			filePathEnc, err := age_encryption.EncryptFile(bundledFullPath, bundledPath, userPubKeys)
 			if err != nil {
 				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -153,6 +160,7 @@ func BundleFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 			}
 
 			fileGroup.FileKey = filePathEnc
+			os.Remove(bundledFullPath)
 		}
 
 		expDate, err := time.Parse(time.RFC3339, bodyParams.ExpiredAt)

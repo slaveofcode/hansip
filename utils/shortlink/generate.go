@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/google/uuid"
-	"github.com/slaveofcode/securi/repository/pg/models"
+	"github.com/slaveofcode/hansip/repository/pg/models"
 	"github.com/teris-io/shortid"
 	"gorm.io/gorm"
 )

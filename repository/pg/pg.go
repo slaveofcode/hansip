@@ -7,8 +7,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/slaveofcode/securi/repository"
-	"github.com/slaveofcode/securi/repository/pg/models"
+	"github.com/slaveofcode/hansip/repository"
+	"github.com/slaveofcode/hansip/repository/pg/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

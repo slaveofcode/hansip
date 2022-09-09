@@ -1,4 +1,4 @@
-module github.com/slaveofcode/securi
+module github.com/slaveofcode/hansip
 
 go 1.18
 

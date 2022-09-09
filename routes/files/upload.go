@@ -9,9 +9,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/slaveofcode/securi/repository/pg"
-	"github.com/slaveofcode/securi/repository/pg/models"
-	fileHelper "github.com/slaveofcode/securi/utils/file"
+	"github.com/slaveofcode/hansip/repository/pg"
+	"github.com/slaveofcode/hansip/repository/pg/models"
+	fileHelper "github.com/slaveofcode/hansip/utils/file"
 	"gorm.io/gorm"
 )
 

@@ -5,9 +5,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/slaveofcode/securi/repository/pg"
-	"github.com/slaveofcode/securi/repository/pg/models"
-	userHelper "github.com/slaveofcode/securi/utils/user"
+	"github.com/slaveofcode/hansip/repository/pg"
+	"github.com/slaveofcode/hansip/repository/pg/models"
+	userHelper "github.com/slaveofcode/hansip/utils/user"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )

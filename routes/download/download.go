@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/slaveofcode/securi/age_encryption"
-	"github.com/slaveofcode/securi/repository/pg"
-	"github.com/slaveofcode/securi/repository/pg/models"
-	"github.com/slaveofcode/securi/utils/aes"
-	userHelper "github.com/slaveofcode/securi/utils/user"
+	"github.com/slaveofcode/hansip/age_encryption"
+	"github.com/slaveofcode/hansip/repository/pg"
+	"github.com/slaveofcode/hansip/repository/pg/models"
+	"github.com/slaveofcode/hansip/utils/aes"
+	userHelper "github.com/slaveofcode/hansip/utils/user"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -113,7 +113,7 @@ func Download(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 			return
 		}
 
-		fileName := fmt.Sprintf("securi-file-%s.zip", time.Now().Format("20060102150405"))
+		fileName := fmt.Sprintf("hansip-file-%s.zip", time.Now().Format("20060102150405"))
 		filePath := shortLink.FileGroup.FileKey
 
 		if isPrivateMembersOnly {

@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 
-	"github.com/slaveofcode/securi/repository/pg/models"
+	"github.com/slaveofcode/hansip/repository/pg/models"
 	"gorm.io/gorm"
 )
 

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/slaveofcode/securi/repository/pg"
-	"github.com/slaveofcode/securi/repository/pg/models"
+	"github.com/slaveofcode/hansip/repository/pg"
+	"github.com/slaveofcode/hansip/repository/pg/models"
 )
 
 func GetUserFromHeaderAuth(pgRepo *pg.RepositoryPostgres, token string) (*models.User, error) {

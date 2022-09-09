@@ -10,11 +10,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/slaveofcode/securi/age_encryption"
-	"github.com/slaveofcode/securi/repository/pg"
-	"github.com/slaveofcode/securi/repository/pg/models"
-	"github.com/slaveofcode/securi/routes/middleware"
-	"github.com/slaveofcode/securi/utils/shortlink"
+	"github.com/slaveofcode/hansip/age_encryption"
+	"github.com/slaveofcode/hansip/repository/pg"
+	"github.com/slaveofcode/hansip/repository/pg/models"
+	"github.com/slaveofcode/hansip/routes/middleware"
+	"github.com/slaveofcode/hansip/utils/shortlink"
 	"github.com/yeka/zip"
 	"golang.org/x/crypto/bcrypt"
 )

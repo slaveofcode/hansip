@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/slaveofcode/securi/repository/pg"
-	"github.com/slaveofcode/securi/repository/pg/models"
-	"github.com/slaveofcode/securi/routes/middleware"
+	"github.com/slaveofcode/hansip/repository/pg"
+	"github.com/slaveofcode/hansip/repository/pg/models"
+	"github.com/slaveofcode/hansip/routes/middleware"
 )
 
 type FileGroupParam struct {

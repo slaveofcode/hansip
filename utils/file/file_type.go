@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/h2non/filetype"
-	"github.com/slaveofcode/securi/repository/pg/models"
+	"github.com/slaveofcode/hansip/repository/pg/models"
 )
 
 func GetHeadFilePreviewValue(file *os.File) models.PreviewAsType {

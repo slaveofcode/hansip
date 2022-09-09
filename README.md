@@ -1,4 +1,4 @@
-# Securi
+# Hansip
 
 Simple & protected file sharing for small organization
 

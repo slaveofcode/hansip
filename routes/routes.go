@@ -2,13 +2,13 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/slaveofcode/securi/repository/pg"
-	"github.com/slaveofcode/securi/routes/auth"
-	"github.com/slaveofcode/securi/routes/download"
-	"github.com/slaveofcode/securi/routes/files"
-	"github.com/slaveofcode/securi/routes/middleware"
-	"github.com/slaveofcode/securi/routes/user"
-	"github.com/slaveofcode/securi/routes/visit"
+	"github.com/slaveofcode/hansip/repository/pg"
+	"github.com/slaveofcode/hansip/routes/auth"
+	"github.com/slaveofcode/hansip/routes/download"
+	"github.com/slaveofcode/hansip/routes/files"
+	"github.com/slaveofcode/hansip/routes/middleware"
+	"github.com/slaveofcode/hansip/routes/user"
+	"github.com/slaveofcode/hansip/routes/visit"
 )
 
 func routeAuth(r *gin.RouterGroup, pgRepo *pg.RepositoryPostgres) {

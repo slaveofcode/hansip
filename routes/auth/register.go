@@ -8,9 +8,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/slaveofcode/securi/repository/pg"
-	"github.com/slaveofcode/securi/repository/pg/models"
-	"github.com/slaveofcode/securi/utils/aes"
+	"github.com/slaveofcode/hansip/repository/pg"
+	"github.com/slaveofcode/hansip/repository/pg/models"
+	"github.com/slaveofcode/hansip/utils/aes"
 	"gorm.io/gorm"
 )
 

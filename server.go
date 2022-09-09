@@ -10,8 +10,8 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/slaveofcode/securi/repository/pg"
-	appRoutes "github.com/slaveofcode/securi/routes"
+	"github.com/slaveofcode/hansip/repository/pg"
+	appRoutes "github.com/slaveofcode/hansip/routes"
 )
 
 func prepareDirs(dirList []string) error {

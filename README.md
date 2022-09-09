@@ -1,5 +1,5 @@
 
-<img src="https://raw.github.com/slaveofcode/hansip/feature/configure-for-branding/assets/logo.png" align="right" />
+<img src="https://raw.github.com/slaveofcode/hansip/feature/configure-for-branding/assets/logo-256.png" align="right" />
 
 # Hansip
 

@@ -1,5 +1,5 @@
 
-<img src="https://raw.github.com/slaveofcode/hansip/feature/configure-for-branding/assets/logo-256.png" align="right" />
+<img src="https://raw.github.com/slaveofcode/hansip/develop/assets/logo-256.png" align="right" />
 
 # Hansip
 
@@ -16,15 +16,15 @@ Hansip server will need [Hansip Web](https://github.com/slaveofcode/hansip-web) 
 
 <h4 align="center">Home Page</h4>
 
-![](https://raw.github.com/slaveofcode/hansip/feature/configure-for-branding/assets/screenshots/homepage.png)
+![](https://raw.github.com/slaveofcode/hansip/develop/assets/screenshots/homepage.png)
 
 <h4 align="center">Upload Preview</h4>
 
-![](https://raw.github.com/slaveofcode/hansip/feature/configure-for-branding/assets/screenshots/upload-preview.png)
+![](https://raw.github.com/slaveofcode/hansip/develop/assets/screenshots/upload-preview.png)
 
 <h4 align="center">Extra Password Protection</h4>
 
-![](https://raw.github.com/slaveofcode/hansip/feature/configure-for-branding/assets/screenshots/security-password.png)
+![](https://raw.github.com/slaveofcode/hansip/develop/assets/screenshots/security-password.png)
 
 ## Installation
 ### Database

@@ -47,3 +47,5 @@ tmp/
 docker-compose.yml
 
 keys/
+
+.DS_Store

@@ -3,7 +3,7 @@
 
 # Hansip
 
-Simple End-to-End encrypted file sharing for small/medium organization.
+Simple file sharing with End-to-End encryption for small/medium organization.
 
 ## Installation
 

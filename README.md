@@ -5,16 +5,21 @@
 
 Simple file sharing with End-to-End encryption for small/medium organization.
 
-## Installation
-
-### Requirements
+### Server Requirements
 
 1. Golang 1.18 or newer
 2. Postgres 12 or newer
 
+### Web Client
+
+Hansip server will need [Hansip Web](https://github.com/slaveofcode/hansip-web) to interact with the users. It's a static site that can be deployed on the separated static-site hosting server.
+
+![Upload Preview](https://raw.github.com/slaveofcode/hansip/feature/configure-for-branding/assets/screenshots/upload-preview.png)
+
+## Installation
 ### Database
 
-Before running any application or after preparing a new database, please execute the command below to add UUID extension. Otherwise the migration for table could faca an error because unsupported UUID function is executed.
+Before running any application or after preparing a new database, please execute the command below to add UUID extension. Otherwise the migration for table could face an error because unsupported UUID function is executed.
 
 #### Create UUID extension
 

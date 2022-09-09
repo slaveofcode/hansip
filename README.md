@@ -12,7 +12,7 @@ Simple file sharing with End-to-End encryption for small/medium organization.
 
 ### Web Client
 
-Hansip server will need [Hansip Web](https://github.com/slaveofcode/hansip-web) to interact with the users. It's a static site that can be deployed on the separated static-site hosting server.
+Hansip server will need [Hansip Web](https://github.com/slaveofcode/hansip-web) to interact with the users. It's a static site that can be deployed on static-site hosting server.
 
 <h4 align="center">Home Page</h4>
 

@@ -52,7 +52,14 @@ func Register(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 			}).First(&findExtCred)
 
 			if res.RowsAffected > 0 {
-				return errors.New("existing email already exist")
+				return errors.New("email already exist")
+			}
+
+			var findExtAlias models.User
+			res = tx.Where(`"alias" ILIKE ?`, bodyParams.Alias).First(&findExtAlias)
+
+			if res.RowsAffected > 0 {
+				return errors.New("alias already exist")
 			}
 
 			user := models.User{

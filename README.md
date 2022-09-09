@@ -14,14 +14,14 @@ Simple file sharing with End-to-End encryption for small/medium organization.
 
 Hansip server will need [Hansip Web](https://github.com/slaveofcode/hansip-web) to interact with the users. It's a static site that can be deployed on the separated static-site hosting server.
 
-**Home Page**
-![Upload Preview](https://raw.github.com/slaveofcode/hansip/feature/configure-for-branding/assets/screenshots/homepage.png)
+<h4 align="center">Home Page</h4>
+![](https://raw.github.com/slaveofcode/hansip/feature/configure-for-branding/assets/screenshots/homepage.png)
 
-**Upload Preview**
-![Upload Preview](https://raw.github.com/slaveofcode/hansip/feature/configure-for-branding/assets/screenshots/upload-preview.png)
+<h4 align="center">Upload Preview</H4>
+![](https://raw.github.com/slaveofcode/hansip/feature/configure-for-branding/assets/screenshots/upload-preview.png)
 
-**Extra Password Protection**
-![Extra Password Protection](https://raw.github.com/slaveofcode/hansip/feature/configure-for-branding/assets/screenshots/security-password.png)
+<h4 align="center">Extra Password Protection</H4>
+![](https://raw.github.com/slaveofcode/hansip/feature/configure-for-branding/assets/screenshots/security-password.png)
 
 ## Installation
 ### Database

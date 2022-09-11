@@ -12,7 +12,7 @@ Simple file sharing with End-to-End encryption for small/medium organization.
 
 ### Web Client
 
-Hansip server will need [Hansip Web](https://github.com/slaveofcode/hansip-web) to interact with the users. It's a static site that can be deployed on static-site hosting server.
+Hansip server binary is bundled with [Hansip Web](https://github.com/slaveofcode/hansip-web) static site, so you don't have to host the static web separately. But it is possible to deploy the web separately on your favourite hosting server, just make sure that the server url is setup properly.
 
 <h4 align="center">Home Page</h4>
 
@@ -26,11 +26,10 @@ Hansip server will need [Hansip Web](https://github.com/slaveofcode/hansip-web) 
 
 ![](https://raw.github.com/slaveofcode/hansip/develop/assets/screenshots/security-password.png)
 
-## Installation
-### Database
+<h4 align="center">Upload Progress</h4>
 
-Before running any application or after preparing a new database, please execute the command below to add UUID extension. Otherwise the migration for table could face an error because unsupported UUID function is executed.
+![](https://raw.github.com/slaveofcode/hansip/develop/assets/screenshots/upload-progress.png)
 
-#### Create UUID extension
+<h4 align="center">Upload Complete</h4>
 
-> CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+![](https://raw.github.com/slaveofcode/hansip/develop/assets/screenshots/upload-complete.png)

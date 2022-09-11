@@ -40,6 +40,8 @@ func (pg *RepositoryPostgres) Migrate() error {
 		return fmt.Errorf("database doesn't connected yet")
 	}
 
+	pg.db.Exec(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`)
+
 	err := pg.db.AutoMigrate(
 		&models.User{},
 		&models.UserCredential{},

@@ -49,3 +49,5 @@ docker-compose.yml
 keys/
 
 .DS_Store
+
+config.yaml

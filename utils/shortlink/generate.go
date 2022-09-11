@@ -3,11 +3,10 @@ package shortlink
 import (
 	"fmt"
 	"log"
-	"os"
-	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/slaveofcode/hansip/repository/pg/models"
+	"github.com/spf13/viper"
 	"github.com/teris-io/shortid"
 	"gorm.io/gorm"
 )
@@ -19,9 +18,9 @@ const (
 var shortId *shortid.Shortid
 
 func init() {
-	workerNum, _ := strconv.Atoi(os.Getenv("SHORTID_WORKER"))
-	seed, _ := strconv.Atoi(os.Getenv("SHORTID_SEED"))
-	sId, err := shortid.New(uint8(workerNum), SHORTID_CHARS, uint64(seed))
+	workerNum := viper.GetInt("short_id.worker")
+	seed := viper.GetUint64("short_id.seed")
+	sId, err := shortid.New(uint8(workerNum), SHORTID_CHARS, seed)
 	if err != nil {
 		log.Println("Failed to initialize shortid")
 	}
@@ -61,7 +60,7 @@ func MakeNewCode(fileGroupId *uuid.UUID, pin string, db *gorm.DB) (*models.Short
 }
 
 func MakeURL(shortLink *models.ShortLink) string {
-	siteUrl := os.Getenv("SITE_URL_BASE")
-	shortlinkPath := os.Getenv("SITE_URL_SHORTLINK_PATH")
+	siteUrl := viper.GetString("site.url")
+	shortlinkPath := viper.GetString("site.shortlink_path")
 	return fmt.Sprintf("%s%s/%s", siteUrl, shortlinkPath, shortLink.ShortCode)
 }

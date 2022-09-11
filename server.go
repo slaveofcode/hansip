@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -12,7 +13,26 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/slaveofcode/hansip/repository/pg"
 	appRoutes "github.com/slaveofcode/hansip/routes"
+	"github.com/spf13/viper"
 )
+
+func readConfig() {
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(".")             // working directory
+	viper.AddConfigPath("$HOME/.hansip") // hansip app directory
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			panic(fmt.Errorf("please create the config file [config.yaml]"))
+		} else {
+			panic(fmt.Errorf("unable to read config file [config.yaml]: %w", err))
+		}
+	}
+
+	// Set default config keys
+	viper.SetDefault("server.hostname", "0.0.0.0")
+	viper.SetDefault("site.shortlink_path", "/d")
+}
 
 func prepareDirs(dirList []string) error {
 	for _, path := range dirList {
@@ -30,12 +50,14 @@ func prepareDirs(dirList []string) error {
 }
 
 func main() {
+	readConfig()
+
 	pgDB := pg.NewRepository(&pg.ConnectionOption{
-		DBName: os.Getenv("DATABASE_NAME"),
-		Host:   os.Getenv("DATABASE_HOST"),
-		Port:   os.Getenv("DATABASE_PORT"),
-		User:   os.Getenv("DATABASE_USER"),
-		Pass:   os.Getenv("DATABASE_PASSWORD"),
+		DBName: viper.GetString("database.name"),
+		Host:   viper.GetString("database.host"),
+		Port:   viper.GetString("database.port"),
+		User:   viper.GetString("database.user"),
+		Pass:   viper.GetString("database.password"),
 	}, time.UTC)
 
 	if err := pgDB.Connect(context.Background()); err != nil {
@@ -46,15 +68,13 @@ func main() {
 	defer pgDB.Close()
 
 	if err := prepareDirs([]string{
-		os.Getenv("UPLOAD_DIR_PATH"),
-		os.Getenv("BUNDLED_DIR_PATH"),
+		viper.GetString("dirpaths.upload"),
+		viper.GetString("dirpaths.bundle"),
 	}); err != nil {
 		panic("Unable to prepare temp. directories:" + err.Error())
 	}
 
-	if os.Getenv("ENV") == "production" {
-		gin.SetMode(gin.ReleaseMode)
-	}
+	gin.SetMode(gin.ReleaseMode)
 
 	routes := gin.Default()
 
@@ -64,11 +84,11 @@ func main() {
 	corsConfig.ExposeHeaders = []string{"Content-Disposition"}
 	routes.Use(cors.New(corsConfig))
 
-	routes.MaxMultipartMemory = 10 << 20 // 10 MiB
+	routes.MaxMultipartMemory = viper.GetInt64("upload.max_mb") << 20
 	appRoutes.Routes(routes, pgDB.(*pg.RepositoryPostgres))
 
 	server := &http.Server{
-		Addr:    os.Getenv("HOSTNAME") + ":" + os.Getenv("PORT"),
+		Addr:    viper.GetString("server.hostname") + ":" + viper.GetString("server.port"),
 		Handler: routes,
 	}
 

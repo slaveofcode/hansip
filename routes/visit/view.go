@@ -68,12 +68,35 @@ func View(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 			files, _ = getFiles(db, shortLink.FileGroupId)
 		}
 
+		isAllowedToOpen := true
 		isNeedLogin := len(shortLink.FileGroup.SharedToUserIds) > 0
+		if isNeedLogin {
+			isAllowedToOpen = false
+			tokenHeader := c.Request.Header["Authorization"]
+			if len(tokenHeader) > 0 {
+				user, err := userHelper.GetUserFromHeaderAuth(pgRepo, tokenHeader[0])
+				if err != nil {
+					c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+						"success": false,
+						"message": "Please login to continue download" + err.Error(),
+					})
+					return
+				}
+
+				for _, uid := range shortLink.FileGroup.SharedToUserIds {
+					if uid == user.ID.String() {
+						isAllowedToOpen = true
+						break
+					}
+				}
+			}
+		}
 
 		c.JSON(http.StatusOK, gin.H{
 			"success":     true,
 			"isProtected": isProtected,
 			"isNeedLogin": isNeedLogin,
+			"isAllowed":   isAllowedToOpen,
 			"data": gin.H{
 				"files": files,
 			},
@@ -115,10 +138,11 @@ func ViewProtected(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 			return
 		}
 
-		isAllowedToOpen := false
+		isAllowedToOpen := true
 		isNeedLogin := len(shortLink.FileGroup.SharedToUserIds) > 0
 		var user *models.User = nil
 		if isNeedLogin {
+			isAllowedToOpen = false
 			tokenHeader := c.Request.Header["Authorization"]
 			if len(tokenHeader) > 0 {
 				user, err = userHelper.GetUserFromHeaderAuth(pgRepo, tokenHeader[0])
@@ -142,7 +166,7 @@ func ViewProtected(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 		if !isAllowedToOpen {
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
 				"success": false,
-				"message": "You're not allowed to download",
+				"message": "You're not allowed to view this page",
 			})
 			return
 		}

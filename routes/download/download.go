@@ -13,6 +13,7 @@ import (
 	"github.com/slaveofcode/hansip/repository/pg/models"
 	"github.com/slaveofcode/hansip/utils/aes"
 	userHelper "github.com/slaveofcode/hansip/utils/user"
+	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -102,15 +103,17 @@ func Download(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 			return
 		}
 
-		var userCred models.UserCredential
-		res = db.Where(`"userId" = ?`, userId).First(&userCred)
-		err := bcrypt.CompareHashAndPassword([]byte(userCred.CredentialValue), []byte(bodyParams.UserPassword))
-		if res.RowsAffected == 0 || err != nil {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
-				"success": false,
-				"message": "Invalid Account Password",
-			})
-			return
+		if userId != "" {
+			var userCred models.UserCredential
+			res = db.Where(`"userId" = ?`, userId).First(&userCred)
+			err := bcrypt.CompareHashAndPassword([]byte(userCred.CredentialValue), []byte(bodyParams.UserPassword))
+			if res.RowsAffected == 0 || err != nil {
+				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+					"success": false,
+					"message": "Invalid Account Password",
+				})
+				return
+			}
 		}
 
 		fileName := fmt.Sprintf("hansip-file-%s.zip", time.Now().Format("20060102150405"))
@@ -129,7 +132,7 @@ func Download(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 				return
 			}
 
-			bundledPath := filepath.FromSlash(os.Getenv("BUNDLED_DIR_PATH"))
+			bundledPath := filepath.FromSlash(viper.GetString("dirpaths.bundle"))
 			secretKey := aes.Decrypt(bodyParams.UserPassword, userKey.Private)
 			filePathDec, err := age_encryption.DecryptFile(shortLink.FileGroup.FileKey, bundledPath, secretKey)
 			if err != nil {

@@ -12,6 +12,7 @@ import (
 	"github.com/slaveofcode/hansip/repository/pg"
 	"github.com/slaveofcode/hansip/repository/pg/models"
 	fileHelper "github.com/slaveofcode/hansip/utils/file"
+	"github.com/spf13/viper"
 	"gorm.io/gorm"
 )
 
@@ -40,7 +41,7 @@ func Upload(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 		// Generate random file name for the new uploaded file so it doesn't override the old file with same name
 		newFileName := uuid.New().String() + fileExt
 
-		uploadPath := filepath.FromSlash(os.Getenv("UPLOAD_DIR_PATH"))
+		uploadPath := filepath.FromSlash(viper.GetString("dirpaths.upload"))
 		uploadFullPath := filepath.Join(uploadPath, newFileName)
 		if err := c.SaveUploadedFile(file, uploadFullPath); err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{

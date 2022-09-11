@@ -15,6 +15,7 @@ import (
 	"github.com/slaveofcode/hansip/repository/pg/models"
 	"github.com/slaveofcode/hansip/routes/middleware"
 	"github.com/slaveofcode/hansip/utils/shortlink"
+	"github.com/spf13/viper"
 	"github.com/yeka/zip"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -82,7 +83,7 @@ func BundleFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 			return
 		}
 
-		bundledPath := filepath.FromSlash(os.Getenv("BUNDLED_DIR_PATH"))
+		bundledPath := filepath.FromSlash(viper.GetString("dirpaths.bundle"))
 		bundledFullPath := filepath.Join(bundledPath, fileGroup.ID.String()+".zip")
 		zipFile, err := os.Create(bundledFullPath)
 		if err != nil {
@@ -111,7 +112,7 @@ func BundleFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 
 		}
 
-		uploadPath := filepath.FromSlash(os.Getenv("UPLOAD_DIR_PATH"))
+		uploadPath := filepath.FromSlash(viper.GetString("dirpaths.upload"))
 		zipCompressor := zip.NewWriter(zipFile)
 		for _, item := range fileItems {
 			filePath := filepath.Join(uploadPath, item.Filename)

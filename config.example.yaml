@@ -1,17 +1,25 @@
 server:
   hostname: localhost
   port: 8080
+
+server_web:
+  enable: false
+  port: 8181
+
 dirpaths:
   upload: /tmp/hansip-files/uploaded
   bundle: /tmp/hansip-files/bundled
+
 database:
   host: localhost
   port: 5432
   name: your_dbname
   user: your_dbusername
   password: your_dbpassword
+
 short_id:
   worker: 1
   seed: 7357
+
 site:
   url: http://127.0.0.1:5173

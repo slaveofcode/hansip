@@ -129,13 +129,15 @@ func ViewProtected(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 			return
 		}
 
-		err := bcrypt.CompareHashAndPassword([]byte(shortLink.PIN), []byte(bodyParams.Password))
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
-				"success": false,
-				"message": "Invalid Page Password" + err.Error(),
-			})
-			return
+		if shortLink.PIN != "" {
+			err := bcrypt.CompareHashAndPassword([]byte(shortLink.PIN), []byte(bodyParams.Password))
+			if err != nil {
+				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+					"success": false,
+					"message": "Invalid Page Password" + err.Error(),
+				})
+				return
+			}
 		}
 
 		isAllowedToOpen := true
@@ -145,7 +147,7 @@ func ViewProtected(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 			isAllowedToOpen = false
 			tokenHeader := c.Request.Header["Authorization"]
 			if len(tokenHeader) > 0 {
-				user, err = userHelper.GetUserFromHeaderAuth(pgRepo, tokenHeader[0])
+				userAuth, err := userHelper.GetUserFromHeaderAuth(pgRepo, tokenHeader[0])
 				if err != nil {
 					c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
 						"success": false,
@@ -153,6 +155,8 @@ func ViewProtected(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 					})
 					return
 				}
+
+				user = userAuth
 
 				for _, uid := range shortLink.FileGroup.SharedToUserIds {
 					if uid == user.ID.String() {
@@ -173,7 +177,7 @@ func ViewProtected(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 
 		var userCred models.UserCredential
 		res = db.Where(`"userId" = ?`, user.ID.String()).First(&userCred)
-		err = bcrypt.CompareHashAndPassword([]byte(userCred.CredentialValue), []byte(bodyParams.UserPassword))
+		err := bcrypt.CompareHashAndPassword([]byte(userCred.CredentialValue), []byte(bodyParams.UserPassword))
 		if res.RowsAffected == 0 || err != nil {
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
 				"success": false,

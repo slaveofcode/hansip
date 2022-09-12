@@ -22,6 +22,7 @@ func CheckToken(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 				"success": false,
 				"message": "Unauthorized",
 			})
+			return
 		}
 
 		bearers := strings.Split(h.Authorization, " ")
@@ -30,6 +31,7 @@ func CheckToken(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 				"success": false,
 				"message": "Unauthorized",
 			})
+			return
 		}
 
 		bearer := bearers[1]
@@ -45,6 +47,7 @@ func CheckToken(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 				"success": false,
 				"message": "Unauthorized",
 			})
+			return
 		}
 
 		if acct.TokenExpiredAt.Before(time.Now()) {
@@ -52,6 +55,7 @@ func CheckToken(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 				"success": false,
 				"message": "Unauthorized",
 			})
+			return
 		}
 
 		c.JSON(http.StatusOK, gin.H{

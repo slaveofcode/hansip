@@ -27,6 +27,7 @@ func UserData(pgRepo *pg.RepositoryPostgres) func(ctx *gin.Context) {
 				"success": false,
 				"message": "Unauthorized",
 			})
+			return
 		}
 
 		bearers := strings.Split(h.Authorization, " ")
@@ -35,6 +36,7 @@ func UserData(pgRepo *pg.RepositoryPostgres) func(ctx *gin.Context) {
 				"success": false,
 				"message": "Unauthorized",
 			})
+			return
 		}
 
 		bearer := bearers[1]
@@ -50,6 +52,7 @@ func UserData(pgRepo *pg.RepositoryPostgres) func(ctx *gin.Context) {
 				"success": false,
 				"message": "Unauthorized",
 			})
+			return
 		}
 
 		if acct.TokenExpiredAt.Before(time.Now()) {
@@ -57,6 +60,7 @@ func UserData(pgRepo *pg.RepositoryPostgres) func(ctx *gin.Context) {
 				"success": false,
 				"message": "Unauthorized",
 			})
+			return
 		}
 
 		ctx.Set(CTX_USER_ID, acct.UserId.String())

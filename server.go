@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"embed"
 	"errors"
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
@@ -15,6 +17,9 @@ import (
 	appRoutes "github.com/slaveofcode/hansip/routes"
 	"github.com/spf13/viper"
 )
+
+//go:embed all:assets/web/**
+var webHtml embed.FS
 
 func readConfig() {
 	viper.SetConfigName("config")
@@ -31,7 +36,8 @@ func readConfig() {
 
 	// Set default config keys
 	viper.SetDefault("server.hostname", "0.0.0.0")
-	viper.SetDefault("site.shortlink_path", "/d")
+	viper.SetDefault("site.shortlink_path", "/#/d")
+	viper.SetDefault("server_web.port", "8181")
 }
 
 func prepareDirs(dirList []string) error {
@@ -86,6 +92,22 @@ func main() {
 
 	routes.MaxMultipartMemory = viper.GetInt64("upload.max_mb") << 20
 	appRoutes.Routes(routes, pgDB.(*pg.RepositoryPostgres))
+
+	if viper.GetBool("server_web.enable") {
+		go func() {
+			web, err := fs.Sub(webHtml, "assets/web")
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+
+			webStatic := gin.Default()
+			webStatic.StaticFS("/", http.FS(web))
+			webStatic.Run(":" + viper.GetString("server_web.port"))
+
+			// http.Handle("/", http.StripPrefix("/", http.FileServer(http.FS(web))))
+			// log.Fatal(http.ListenAndServe(":8181", nil))
+		}()
+	}
 
 	server := &http.Server{
 		Addr:    viper.GetString("server.hostname") + ":" + viper.GetString("server.port"),

@@ -2,7 +2,6 @@ package user
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -13,8 +12,6 @@ import (
 func GetUserFromHeaderAuth(pgRepo *pg.RepositoryPostgres, token string) (*models.User, error) {
 	bearers := strings.Split(token, " ")
 	bearer := bearers[1]
-
-	log.Println("bearer", bearer)
 
 	db := pgRepo.GetDB()
 

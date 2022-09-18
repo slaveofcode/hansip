@@ -60,7 +60,19 @@ func MakeNewCode(fileGroupId *uuid.UUID, pin string, db *gorm.DB) (*models.Short
 }
 
 func MakeURL(shortLink *models.ShortLink) string {
-	siteUrl := viper.GetString("site.url")
 	shortlinkPath := viper.GetString("site.shortlink_path")
-	return fmt.Sprintf("%s%s/%s", siteUrl, shortlinkPath, shortLink.ShortCode)
+
+	siteProtocol := "http://"
+	if viper.GetBool("server_web.secure") {
+		siteProtocol = "https://"
+	}
+
+	siteAddr := siteProtocol + viper.GetString("server_web.host")
+	sitePort := viper.GetString("server_web.port")
+
+	if sitePort != "80" {
+		siteAddr = fmt.Sprintf("%s:%s", siteAddr, sitePort)
+	}
+
+	return fmt.Sprintf("%s%s/%s", siteAddr, shortlinkPath, shortLink.ShortCode)
 }

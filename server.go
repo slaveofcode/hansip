@@ -2,10 +2,8 @@ package main
 
 import (
 	"context"
-	"embed"
 	"errors"
 	"fmt"
-	"io/fs"
 	"log"
 	"net/http"
 	"os"
@@ -17,9 +15,6 @@ import (
 	appRoutes "github.com/slaveofcode/hansip/routes"
 	"github.com/spf13/viper"
 )
-
-//go:embed all:assets/web/**
-var webHtml embed.FS
 
 func readConfig() {
 	viper.SetConfigName("config")
@@ -35,9 +30,8 @@ func readConfig() {
 	}
 
 	// Set default config keys
-	viper.SetDefault("server.hostname", "0.0.0.0")
+	viper.SetDefault("server_api.host", "localhost")
 	viper.SetDefault("site.shortlink_path", "/#/d")
-	viper.SetDefault("server_web.port", "8181")
 }
 
 func prepareDirs(dirList []string) error {
@@ -81,7 +75,6 @@ func main() {
 	}
 
 	gin.SetMode(gin.ReleaseMode)
-
 	routes := gin.Default()
 
 	corsConfig := cors.DefaultConfig()
@@ -89,30 +82,19 @@ func main() {
 	corsConfig.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
 	corsConfig.ExposeHeaders = []string{"Content-Disposition"}
 	routes.Use(cors.New(corsConfig))
+	routes.Use(gin.Recovery())
 
 	routes.MaxMultipartMemory = viper.GetInt64("upload.max_mb") << 20
 	appRoutes.Routes(routes, pgDB.(*pg.RepositoryPostgres))
 
-	if viper.GetBool("server_web.enable") {
-		go func() {
-			web, err := fs.Sub(webHtml, "assets/web")
-			if err != nil {
-				log.Fatal(err.Error())
-			}
-
-			webStatic := gin.Default()
-			webStatic.StaticFS("/", http.FS(web))
-			webStatic.Run(":" + viper.GetString("server_web.port"))
-
-			// http.Handle("/", http.StripPrefix("/", http.FileServer(http.FS(web))))
-			// log.Fatal(http.ListenAndServe(":8181", nil))
-		}()
-	}
+	serverAddr := viper.GetString("server_api.host") + ":" + viper.GetString("server_api.port")
 
 	server := &http.Server{
-		Addr:    viper.GetString("server.hostname") + ":" + viper.GetString("server.port"),
+		Addr:    serverAddr,
 		Handler: routes,
 	}
+
+	log.Println("Server Started at:", fmt.Sprintf("http://%s", serverAddr))
 
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("listen: %s\n", err)

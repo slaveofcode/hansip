@@ -9,10 +9,9 @@ Simple file sharing with End-to-End encryption for small/medium organization.
 
 1. Golang 1.18 or newer
 2. Postgres 12 or newer
+3. File Storage with AWS S3 (Optional)
 
-### Web Client
-
-Hansip server binary is bundled with [Hansip Web](https://github.com/slaveofcode/hansip-web) static site, so you don't have to host the static web separately. But it is possible to deploy the web separately on your favourite hosting server, just make sure that the server url is setup properly.
+### Screenshots
 
 <h4 align="center">Home Page</h4>
 

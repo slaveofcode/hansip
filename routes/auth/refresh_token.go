@@ -42,9 +42,17 @@ func RefreshToken(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 			return
 		}
 
+		if extAccToken.RefreshTokenExpiredAt.Before(time.Now()) {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"success": false,
+				"message": "Expired refresh token",
+			})
+			return
+		}
+
 		tokenInfo, err := token.GetFreshTokens(db)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"success": false,
 				"message": "Unable to process refresh token",
 			})
@@ -61,7 +69,7 @@ func RefreshToken(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 
 		res = db.Create(&acct)
 		if res.Error != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"success": false,
 				"message": "Unable to process refresh token",
 			})

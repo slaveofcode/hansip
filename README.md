@@ -11,6 +11,10 @@ Simple file sharing with End-to-End encryption for small/medium organization.
 2. Postgres 12 or newer
 3. File Storage with AWS S3 (Optional)
 
+### Configuration
+
+Copy config YAML file at `config.example.yaml` and rename as `config.yaml`
+
 ### Screenshots
 
 <h4 align="center">Home Page</h4>

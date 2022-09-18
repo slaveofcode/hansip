@@ -22,6 +22,3 @@ database:
 short_id:
   worker: 1
   seed: 7357
-
-site:
-  url: http://127.0.0.1:5173

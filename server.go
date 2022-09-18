@@ -31,7 +31,7 @@ func readConfig() {
 
 	// Set default config keys
 	viper.SetDefault("server_api.host", "localhost")
-	viper.SetDefault("site.shortlink_path", "/#/d")
+	viper.SetDefault("site.shortlink_path", "/d")
 }
 
 func prepareDirs(dirList []string) error {

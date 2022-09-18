@@ -1,9 +1,11 @@
-server:
-  hostname: localhost
+server_api:
+  secure: false
+  host: localhost
   port: 8080
 
 server_web:
-  enable: false
+  secure: false
+  host: localhost
   port: 8181
 
 dirpaths:

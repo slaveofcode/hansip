@@ -103,24 +103,6 @@ func Upload(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 			}
 		}
 
-		// res, err := age_encryption.EncryptFile(destPath, dirPath)
-		// if err != nil {
-		// 	c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-		// 		"success":  false,
-		// 		"message": "Unable to encrypt the file:" + err.Error(),
-		// 	})
-		// 	return
-		// }
-
-		// res, err := age_encryption.DecryptFile(destPath, dirPath)
-		// if err != nil {
-		// 	c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-		// 		"success":  false,
-		// 		"message": "Unable to encrypt the file:" + err.Error(),
-		// 	})
-		// 	return
-		// }
-
 		c.JSON(http.StatusCreated, gin.H{
 			"success": true,
 			"message": "File uploaded",

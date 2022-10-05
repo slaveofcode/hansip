@@ -21,6 +21,7 @@ func readConfig() {
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")             // working directory
 	viper.AddConfigPath("$HOME/.hansip") // hansip app directory
+	viper.AddConfigPath("/etc/hansip")   // system directory
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			panic(fmt.Errorf("please create the config file [config.yaml]"))

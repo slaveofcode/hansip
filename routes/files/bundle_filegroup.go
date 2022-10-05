@@ -1,6 +1,7 @@
 package files
 
 import (
+	"context"
 	"io"
 	"log"
 	"net/http"
@@ -8,12 +9,15 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/slaveofcode/hansip/age_encryption"
 	"github.com/slaveofcode/hansip/repository/pg"
 	"github.com/slaveofcode/hansip/repository/pg/models"
 	"github.com/slaveofcode/hansip/routes/middleware"
+	appConfig "github.com/slaveofcode/hansip/utils/config"
 	"github.com/slaveofcode/hansip/utils/shortlink"
 	"github.com/spf13/viper"
 	"github.com/yeka/zip"
@@ -28,7 +32,7 @@ type BundleFileGroupParam struct {
 	UserIds          []string  `json:"userIds" binding:"omitempty"`
 }
 
-func BundleFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
+func BundleFileGroup(repo *pg.RepositoryPostgres, s3Client *s3.Client) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		userId, err := middleware.GetUserId(c)
 		if err != nil {
@@ -84,7 +88,8 @@ func BundleFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 		}
 
 		bundledPath := filepath.FromSlash(viper.GetString("dirpaths.bundle"))
-		bundledFullPath := filepath.Join(bundledPath, fileGroup.ID.String()+".zip")
+		zipFileName := fileGroup.ID.String() + ".zip"
+		bundledFullPath := filepath.Join(bundledPath, zipFileName)
 		zipFile, err := os.Create(bundledFullPath)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -150,7 +155,6 @@ func BundleFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 
 		// set age encryption first if user exist
 		if len(userPubKeys) > 0 {
-			log.Println("userKeys:", userPubKeys)
 			filePathEnc, err := age_encryption.EncryptFile(bundledFullPath, bundledPath, userPubKeys)
 			if err != nil {
 				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -182,6 +186,34 @@ func BundleFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 			})
 			return
 		}
+
+		go func(filePath string) {
+			keyName := filepath.Base(filePath)
+			bundledFile, err := os.Open(filePath)
+			if err != nil {
+				log.Printf("Error reading bundled file at %s, is the file removed? %s", filePath, err.Error())
+				return
+			}
+			defer bundledFile.Close()
+
+			_, err = s3Client.PutObject(context.Background(), &s3.PutObjectInput{
+				Bucket:  aws.String(appConfig.GetS3Bucket()),
+				Key:     &keyName,
+				Body:    bundledFile,
+				Expires: fileGroup.ExpiredAt, // cache expiration
+			})
+
+			if err == nil {
+				fileGroup.FileKey = keyName
+				db.Save(&fileGroup)
+
+				// remove local file because already uploaded to S3
+				os.Remove(filePath)
+				return
+			}
+
+			log.Println("error S3 upload", err)
+		}(fileGroup.FileKey)
 
 		pinCode := ""
 

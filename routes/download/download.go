@@ -1,28 +1,40 @@
 package download
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-gonic/gin"
 	"github.com/slaveofcode/hansip/age_encryption"
 	"github.com/slaveofcode/hansip/repository/pg"
 	"github.com/slaveofcode/hansip/repository/pg/models"
 	"github.com/slaveofcode/hansip/utils/aes"
+	"github.com/slaveofcode/hansip/utils/config"
 	userHelper "github.com/slaveofcode/hansip/utils/user"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var downloadManager *manager.Downloader
 
 type FileOpenParam struct {
 	Password     string `json:"downloadPassword" binding:"omitempty"`
 	UserPassword string `json:"accountPassword" binding:"omitempty"`
 }
 
-func Download(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
+func Download(pgRepo *pg.RepositoryPostgres, s3Client *s3.Client) func(c *gin.Context) {
+
+	if config.IsUsingS3Storage() && downloadManager == nil {
+		downloadManager = manager.NewDownloader(s3Client)
+	}
+
 	return func(c *gin.Context) {
 		code := c.Param("code")
 
@@ -61,11 +73,27 @@ func Download(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 
 		// checking file exist on FS
 		if _, err := os.Stat(shortLink.FileGroup.FileKey); err != nil {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
-				"success": false,
-				"message": "File not found",
+			// checking file exist on S3
+			if !config.IsUsingS3Storage() {
+				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+					"success": false,
+					"message": "File not found",
+				})
+				return
+			}
+
+			_, err := s3Client.HeadObject(context.TODO(), &s3.HeadObjectInput{
+				Bucket: aws.String(config.GetS3Bucket()),
+				Key:    aws.String(shortLink.FileGroup.FileKey),
 			})
-			return
+
+			if err != nil {
+				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+					"success": false,
+					"message": "File not found",
+				})
+				return
+			}
 		}
 
 		userId := ""
@@ -133,8 +161,23 @@ func Download(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 			}
 
 			bundledPath := filepath.FromSlash(viper.GetString("dirpaths.bundle"))
+			storedPath := shortLink.FileGroup.FileKey
+
+			if config.IsUsingS3Storage() {
+				downloadedPath, err := pullFileFromS3(storedPath, bundledPath)
+				if err != nil {
+					c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+						"success": false,
+						"message": "Unable to get the file",
+					})
+					return
+				}
+
+				storedPath = downloadedPath
+			}
+
 			secretKey := aes.Decrypt(bodyParams.UserPassword, userKey.Private)
-			filePathDec, err := age_encryption.DecryptFile(shortLink.FileGroup.FileKey, bundledPath, secretKey)
+			decryptedFilePath, err := age_encryption.DecryptFile(storedPath, bundledPath, secretKey)
 			if err != nil {
 				c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 					"success": false,
@@ -143,9 +186,39 @@ func Download(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 				return
 			}
 
-			filePath = filePathDec
+			filePath = decryptedFilePath
 		}
 
 		c.FileAttachment(filePath, fileName)
+
+		// TODO: Set timer remove downloaded files from S3
 	}
+}
+
+func pullFileFromS3(fileKey, location string) (string, error) {
+	fileDest := filepath.Join(location, fileKey)
+	if err := os.MkdirAll(filepath.Dir(fileDest), 0775); err != nil {
+		return "", err
+	}
+
+	fileBuff, err := os.Create(fileDest)
+	if err != nil {
+		return "", err
+	}
+	defer fileBuff.Close()
+
+	_, err = downloadManager.Download(
+		context.TODO(),
+		fileBuff,
+		&s3.GetObjectInput{
+			Bucket: aws.String(config.GetS3Bucket()),
+			Key:    &fileKey,
+		},
+	)
+
+	if err != nil {
+		return "", err
+	}
+
+	return fileDest, nil
 }

@@ -8,6 +8,9 @@ server_web:
   host: localhost
   port: 8181
 
+storage:
+  type: filesystem # or s3
+
 dirpaths:
   upload: /tmp/hansip-files/uploaded
   bundle: /tmp/hansip-files/bundled
@@ -22,3 +25,10 @@ database:
 short_id:
   worker: 1
   seed: 7357
+
+aws:
+  region:
+  s3:
+    bucket_name:
+    access_key:
+    secret_key:

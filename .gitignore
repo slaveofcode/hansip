@@ -51,3 +51,7 @@ keys/
 .DS_Store
 
 config.yaml
+
+*.db
+*.db-wal
+*.db-shm

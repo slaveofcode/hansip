@@ -2,13 +2,13 @@ package middleware
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
-	"github.com/slaveofcode/hansip/repository/pg"
-	"github.com/slaveofcode/hansip/repository/pg/models"
+	"github.com/slaveofcode/hansip/repository"
+	"github.com/slaveofcode/hansip/repository/models"
 )
 
 const (
@@ -19,7 +19,7 @@ type requestHeader struct {
 	Authorization string `header:"Authorization"`
 }
 
-func UserData(pgRepo *pg.RepositoryPostgres) func(ctx *gin.Context) {
+func UserData(repo repository.Repository) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		h := requestHeader{}
 		if err := ctx.ShouldBindHeader(&h); err != nil {
@@ -40,7 +40,7 @@ func UserData(pgRepo *pg.RepositoryPostgres) func(ctx *gin.Context) {
 		}
 
 		bearer := bearers[1]
-		db := pgRepo.GetDB()
+		db := repo.GetDB()
 
 		var acct models.AccessToken
 		res := db.Where(&models.AccessToken{
@@ -63,10 +63,10 @@ func UserData(pgRepo *pg.RepositoryPostgres) func(ctx *gin.Context) {
 			return
 		}
 
-		ctx.Set(CTX_USER_ID, acct.UserId.String())
+		ctx.Set(CTX_USER_ID, acct.UserId)
 	}
 }
 
-func GetUserId(c *gin.Context) (uuid.UUID, error) {
-	return uuid.Parse(c.GetString(CTX_USER_ID))
+func GetUserId(c *gin.Context) (uint64, error) {
+	return strconv.ParseUint(c.GetString(CTX_USER_ID), 10, 64)
 }

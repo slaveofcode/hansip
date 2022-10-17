@@ -15,7 +15,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/slaveofcode/hansip/repository"
 	"github.com/slaveofcode/hansip/repository/pg"
+	"github.com/slaveofcode/hansip/repository/sqlite"
 	appRoutes "github.com/slaveofcode/hansip/routes"
 	appConfig "github.com/slaveofcode/hansip/utils/config"
 	"github.com/spf13/viper"
@@ -68,6 +70,7 @@ func readConfig() {
 	}
 
 	// Set default config keys
+	viper.SetDefault("sqlite.path", "./hansip.db")
 	viper.SetDefault("server_api.host", "localhost")
 	viper.SetDefault("site.shortlink_path", "/d")
 }
@@ -87,6 +90,22 @@ func prepareDirs(dirList []string) error {
 	return nil
 }
 
+func getRepo() repository.Repository {
+	if viper.GetString("db.type") == "postgresql" {
+		return pg.NewRepository(&pg.ConnectionOption{
+			DBName: viper.GetString("postgresql.name"),
+			Host:   viper.GetString("postgresql.host"),
+			Port:   viper.GetString("postgresql.port"),
+			User:   viper.GetString("postgresql.user"),
+			Pass:   viper.GetString("postgresql.password"),
+		}, time.UTC)
+	}
+
+	return sqlite.NewRepository(&sqlite.ConnectionOption{
+		Path: viper.GetString("sqlite.path"),
+	}, time.UTC)
+}
+
 func main() {
 	readConfig()
 
@@ -95,20 +114,14 @@ func main() {
 		s3Client = s3.NewFromConfig(awsConfig, func(o *s3.Options) {})
 	}
 
-	pgDB := pg.NewRepository(&pg.ConnectionOption{
-		DBName: viper.GetString("database.name"),
-		Host:   viper.GetString("database.host"),
-		Port:   viper.GetString("database.port"),
-		User:   viper.GetString("database.user"),
-		Pass:   viper.GetString("database.password"),
-	}, time.UTC)
+	repo := getRepo()
 
-	if err := pgDB.Connect(context.Background()); err != nil {
+	if err := repo.Connect(context.Background()); err != nil {
 		panic(err.Error())
 	}
 
-	pgDB.(*pg.RepositoryPostgres).Migrate()
-	defer pgDB.Close()
+	repo.Migrate()
+	defer repo.Close()
 
 	if err := prepareDirs([]string{
 		viper.GetString("dirpaths.upload"),
@@ -128,7 +141,7 @@ func main() {
 	routes.Use(gin.Recovery())
 	routes.MaxMultipartMemory = viper.GetInt64("upload.max_mb") << 20
 
-	appRoutes.Routes(routes, pgDB.(*pg.RepositoryPostgres), s3Client)
+	appRoutes.Routes(routes, repo, s3Client)
 
 	serverAddr := viper.GetString("server_api.host") + ":" + viper.GetString("server_api.port")
 

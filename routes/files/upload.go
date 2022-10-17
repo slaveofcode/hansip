@@ -5,20 +5,21 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/slaveofcode/hansip/repository/pg"
-	"github.com/slaveofcode/hansip/repository/pg/models"
+	"github.com/slaveofcode/hansip/repository"
+	"github.com/slaveofcode/hansip/repository/models"
 	fileHelper "github.com/slaveofcode/hansip/utils/file"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
 )
 
-func Upload(repo *pg.RepositoryPostgres) func(c *gin.Context) {
+func Upload(repo repository.Repository) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		fileGroupId, err := uuid.Parse(c.PostForm("fileGroupId"))
+		fileGroupId, err := strconv.ParseUint(c.PostForm("fileGroupId"), 10, 64)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"success": false,
@@ -60,14 +61,14 @@ func Upload(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 		saveFileMeta := func() error {
 			return db.Transaction(func(tx *gorm.DB) error {
 				var fileGroup models.FileGroup
-				res := tx.Where("id = ?", fileGroupId.String()).First(&fileGroup)
+				res := tx.Where("id = ?", fileGroupId).First(&fileGroup)
 
 				if res.Error != nil {
 					return res.Error
 				}
 
 				fileItem := models.FileItem{
-					FileGroupId: &fileGroupId,
+					FileGroupId: fileGroupId,
 					Filename:    newFileName,
 					Realname:    file.Filename,
 					PreviewAs:   filePreview,

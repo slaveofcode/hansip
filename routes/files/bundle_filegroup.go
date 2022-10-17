@@ -2,6 +2,7 @@ package files
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -14,8 +15,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/slaveofcode/hansip/age_encryption"
-	"github.com/slaveofcode/hansip/repository/pg"
-	"github.com/slaveofcode/hansip/repository/pg/models"
+	"github.com/slaveofcode/hansip/repository"
+	"github.com/slaveofcode/hansip/repository/models"
 	"github.com/slaveofcode/hansip/routes/middleware"
 	appConfig "github.com/slaveofcode/hansip/utils/config"
 	"github.com/slaveofcode/hansip/utils/shortlink"
@@ -29,10 +30,10 @@ type BundleFileGroupParam struct {
 	ExpiredAt        string    `json:"expiredAt" binding:"required,datetime=2006-01-02T15:04:05Z07:00"` // format UTC: 2021-07-18T10:00:00.000Z
 	Passcode         string    `json:"passcode" binding:"required,gte=6,lte=100"`
 	DownloadPassword string    `json:"downloadPassword" binding:"omitempty,gte=6,lte=100"`
-	UserIds          []string  `json:"userIds" binding:"omitempty"`
+	UserIds          []uint64  `json:"userIds" binding:"omitempty"`
 }
 
-func BundleFileGroup(repo *pg.RepositoryPostgres, s3Client *s3.Client) func(c *gin.Context) {
+func BundleFileGroup(repo repository.Repository, s3Client *s3.Client) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		userId, err := middleware.GetUserId(c)
 		if err != nil {
@@ -67,7 +68,8 @@ func BundleFileGroup(repo *pg.RepositoryPostgres, s3Client *s3.Client) func(c *g
 		res := db.Where(
 			`id = ? AND "userId" = ? AND "bundledAt" IS NULL`,
 			bodyParams.FileGroupId.String(),
-			userId.String()).First(&fileGroup)
+			userId,
+		).First(&fileGroup)
 
 		if res.Error != nil || res.RowsAffected <= 0 {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -78,7 +80,7 @@ func BundleFileGroup(repo *pg.RepositoryPostgres, s3Client *s3.Client) func(c *g
 		}
 
 		var fileItems []models.FileItem
-		res = db.Where(`"fileGroupId" = ?`, fileGroup.ID.String()).Find(&fileItems)
+		res = db.Where(`"fileGroupId" = ?`, fileGroup.ID).Find(&fileItems)
 		if res.Error != nil || res.RowsAffected <= 0 {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 				"success": false,
@@ -88,7 +90,7 @@ func BundleFileGroup(repo *pg.RepositoryPostgres, s3Client *s3.Client) func(c *g
 		}
 
 		bundledPath := filepath.FromSlash(viper.GetString("dirpaths.bundle"))
-		zipFileName := fileGroup.ID.String() + ".zip"
+		zipFileName := fmt.Sprintf("%d.zip", fileGroup.ID)
 		bundledFullPath := filepath.Join(bundledPath, zipFileName)
 		zipFile, err := os.Create(bundledFullPath)
 		if err != nil {
@@ -100,10 +102,15 @@ func BundleFileGroup(repo *pg.RepositoryPostgres, s3Client *s3.Client) func(c *g
 		}
 
 		userPubKeys := []string{}
+		fileGroupUsers := []models.FileGroupUser{}
 		if len(bodyParams.UserIds) > 0 {
-			// add user self first, so owner file can be downloaded too
+			// add self user, for owner access
 			userShares := bodyParams.UserIds
-			userShares = append(userShares, userId.String())
+			fileGroupUsers = append(fileGroupUsers, models.FileGroupUser{
+				FileGroupId: fileGroup.ID,
+				UserId:      userId,
+			})
+			userShares = append(userShares, userId)
 
 			var userKeys []models.UserKey
 			res := db.Where(`"userId" IN ?`, userShares).Find(&userKeys)
@@ -111,10 +118,23 @@ func BundleFileGroup(repo *pg.RepositoryPostgres, s3Client *s3.Client) func(c *g
 
 				for _, key := range userKeys {
 					userPubKeys = append(userPubKeys, key.Public)
-					fileGroup.SharedToUserIds = append(fileGroup.SharedToUserIds, key.UserId.String())
+					fileGroupUsers = append(fileGroupUsers, models.FileGroupUser{
+						FileGroupId: fileGroup.ID,
+						UserId:      key.UserId,
+					})
 				}
 			}
+		}
 
+		if len(fileGroupUsers) > 0 {
+			res := db.Create(&fileGroupUsers)
+			if res.Error != nil || res.RowsAffected <= 0 {
+				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+					"success": false,
+					"message": "Unable to save user sharing info:" + err.Error(),
+				})
+				return
+			}
 		}
 
 		uploadPath := filepath.FromSlash(viper.GetString("dirpaths.upload"))
@@ -230,7 +250,7 @@ func BundleFileGroup(repo *pg.RepositoryPostgres, s3Client *s3.Client) func(c *g
 			pinCode = string(pinEnc)
 		}
 
-		shortLink, err := shortlink.MakeNewCode(&fileGroup.ID, pinCode, db)
+		shortLink, err := shortlink.MakeNewCode(fileGroup.ID, pinCode, db)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 				"success": false,

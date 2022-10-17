@@ -8,21 +8,21 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/slaveofcode/hansip/repository/pg"
-	"github.com/slaveofcode/hansip/repository/pg/models"
+	"github.com/slaveofcode/hansip/repository"
+	"github.com/slaveofcode/hansip/repository/models"
 	"github.com/slaveofcode/hansip/utils/aes"
 	"gorm.io/gorm"
 )
 
 type RegisterParam struct {
 	Name            string `json:"name" binding:"required"`
-	Alias           string `json:"alias" binding:"required"`
-	Email           string `json:"email" binding:"required,email"`
+	Alias           string `json:"alias" binding:"required,lowercase"`
+	Email           string `json:"email" binding:"required,lowercase,email"`
 	Password        string `json:"password" binding:"required,eqfield=ConfirmPassword"`
 	ConfirmPassword string `json:"cpassword" binding:"required"`
 }
 
-func Register(repo *pg.RepositoryPostgres) func(c *gin.Context) {
+func Register(repo repository.Repository) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var bodyParams RegisterParam
 		if err := c.ShouldBindJSON(&bodyParams); err != nil {
@@ -77,7 +77,7 @@ func Register(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 			}
 
 			userCred := models.UserCredential{
-				UserId:          &user.ID,
+				UserId:          user.ID,
 				IdentityType:    models.IdentityTypeEmail,
 				IdentityValue:   bodyParams.Email,
 				CredentialType:  models.CredentialTypePassword,
@@ -97,7 +97,7 @@ func Register(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 			publicKey := identity.Recipient().String()
 			encPrivateKey := aes.Encrypt(bodyParams.Password, identity.String())
 			userKey := models.UserKey{
-				UserId:  &user.ID,
+				UserId:  user.ID,
 				Public:  publicKey,
 				Private: encPrivateKey,
 			}

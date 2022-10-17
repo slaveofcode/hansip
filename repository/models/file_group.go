@@ -2,9 +2,6 @@ package models
 
 import (
 	"time"
-
-	"github.com/google/uuid"
-	"github.com/lib/pq"
 )
 
 type ArchiveType string
@@ -19,7 +16,7 @@ const FileGroupTableName = "FileGroups"
 
 type FileGroup struct {
 	BaseModel
-	UserId                *uuid.UUID  `gorm:"column:userId;not null;index" json:"userId"`
+	UserId                uint64      `gorm:"column:userId;not null;index" json:"userId"`
 	TotalFiles            int         `gorm:"column:totalFiles;index" json:"totalFiles"`
 	ArchiveType           ArchiveType `gorm:"column:archiveType;index" json:"archiveType"`
 	ArchivePasscode       string      `gorm:"column:archivePasscode" json:"archivePasscode"`
@@ -29,8 +26,7 @@ type FileGroup struct {
 	BundledAt             *time.Time  `gorm:"column:bundledAt;index" json:"bundledAt"`
 	User                  *User       `gorm:"foreignKey:userId" json:"user,omitempty"`
 
-	FileKey         string         `gorm:"column:fileKey" json:"fileKey"`
-	SharedToUserIds pq.StringArray `gorm:"column:sharedUserIds;type:varchar[];index" json:"sharedUserIds"`
+	FileKey string `gorm:"column:fileKey" json:"fileKey"`
 
 	FileItems []FileItem
 }

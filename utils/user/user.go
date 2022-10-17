@@ -5,11 +5,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/slaveofcode/hansip/repository/pg"
-	"github.com/slaveofcode/hansip/repository/pg/models"
+	"github.com/slaveofcode/hansip/repository"
+	"github.com/slaveofcode/hansip/repository/models"
 )
 
-func GetUserFromHeaderAuth(pgRepo *pg.RepositoryPostgres, token string) (*models.User, error) {
+func GetUserFromHeaderAuth(pgRepo repository.Repository, token string) (*models.User, error) {
 	bearers := strings.Split(token, " ")
 	bearer := bearers[1]
 

@@ -1,9 +1,5 @@
 package models
 
-import (
-	"github.com/google/uuid"
-)
-
 type PreviewAsType string
 
 const (
@@ -20,7 +16,7 @@ const FileItemTableName = "FileItems"
 
 type FileItem struct {
 	BaseModel
-	FileGroupId *uuid.UUID    `gorm:"column:fileGroupId;not null;index" json:"fileGroupId"`
+	FileGroupId uint64        `gorm:"column:fileGroupId;not null;index" json:"fileGroupId"`
 	Filename    string        `gorm:"column:fileName;not null;index" json:"fileName"`
 	Realname    string        `gorm:"column:realName;not null;index" json:"realName"`
 	PreviewAs   PreviewAsType `gorm:"column:previewAs;not null;index" json:"previewAs"`

@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/google/uuid"
-	"github.com/slaveofcode/hansip/repository/pg/models"
+	"github.com/slaveofcode/hansip/repository/models"
 	"github.com/spf13/viper"
 	"github.com/teris-io/shortid"
 	"gorm.io/gorm"
@@ -37,7 +36,7 @@ func newRandCode() string {
 	return code
 }
 
-func MakeNewCode(fileGroupId *uuid.UUID, pin string, db *gorm.DB) (*models.ShortLink, error) {
+func MakeNewCode(fileGroupId uint64, pin string, db *gorm.DB) (*models.ShortLink, error) {
 	code := newRandCode()
 	var shortLink models.ShortLink
 	res := db.Where(`"shortCode" = ?`, code).First(&shortLink)

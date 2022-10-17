@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/slaveofcode/hansip/repository/pg"
-	"github.com/slaveofcode/hansip/repository/pg/models"
+	"github.com/slaveofcode/hansip/repository"
+	"github.com/slaveofcode/hansip/repository/models"
 	"github.com/slaveofcode/hansip/utils/token"
 )
 
@@ -15,7 +15,7 @@ type RefreshTokenParam struct {
 	Token string `json:"token" binding:"required"`
 }
 
-func RefreshToken(repo *pg.RepositoryPostgres) func(c *gin.Context) {
+func RefreshToken(repo repository.Repository) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var bodyParams RefreshTokenParam
 		if err := c.ShouldBindJSON(&bodyParams); err != nil {

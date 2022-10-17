@@ -15,7 +15,13 @@ dirpaths:
   upload: /tmp/hansip-files/uploaded
   bundle: /tmp/hansip-files/bundled
 
-database:
+db:
+  type: sqlite # or postgresql
+
+sqlite:
+  path: ./hansip.db
+
+postgresql:
   host: localhost
   port: 5432
   name: your_dbname

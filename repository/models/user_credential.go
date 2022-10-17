@@ -1,7 +1,5 @@
 package models
 
-import "github.com/google/uuid"
-
 const UserCredentialTableName = "UserCredentials"
 
 type IdentityType string
@@ -14,7 +12,7 @@ const (
 
 type UserCredential struct {
 	BaseModel
-	UserId          *uuid.UUID     `gorm:"column:userId;not null;index" json:"userId"`
+	UserId          uint64         `gorm:"column:userId;not null;index" json:"userId"`
 	IdentityType    IdentityType   `gorm:"column:identityType;not null;index" json:"identityType"`
 	IdentityValue   string         `gorm:"column:identityValue;not null" json:"identityValue"`
 	CredentialType  CredentialType `gorm:"column:credentialType;not null;index" json:"credentialType"`

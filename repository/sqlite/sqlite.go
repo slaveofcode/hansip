@@ -1,4 +1,4 @@
-package pg
+package sqlite
 
 import (
 	"context"
@@ -9,38 +9,37 @@ import (
 
 	"github.com/slaveofcode/hansip/repository"
 	"github.com/slaveofcode/hansip/repository/models"
-	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
 func NewRepository(opt *ConnectionOption, timezone *time.Location) repository.Repository {
-	return &RepositoryPostgres{
+	return &RepositorySqlite{
 		connOption: opt,
 		tz:         timezone,
 	}
 }
 
 type ConnectionOption struct {
-	DBName string
-	Host   string
-	Port   string
-	User   string
-	Pass   string
+	Path string
 }
 
-type RepositoryPostgres struct {
+type RepositorySqlite struct {
 	connOption *ConnectionOption
 	db         *gorm.DB
 	tz         *time.Location
 }
 
-func (pg *RepositoryPostgres) Migrate() error {
-	if pg.db == nil {
+func (sq *RepositorySqlite) Migrate() error {
+	if sq.db == nil {
 		return fmt.Errorf("database doesn't connected yet")
 	}
 
-	err := pg.db.AutoMigrate(
+	// Activates WAL mode
+	sq.db.Exec(`PRAGMA journal_mode=WAL;`)
+
+	err := sq.db.AutoMigrate(
 		&models.User{},
 		&models.UserCredential{},
 		&models.UserKey{},
@@ -59,16 +58,15 @@ func (pg *RepositoryPostgres) Migrate() error {
 	return nil
 }
 
-func (pg *RepositoryPostgres) Connect(ctx context.Context) error {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s",
-		pg.connOption.Host, pg.connOption.User, pg.connOption.Pass, pg.connOption.DBName, pg.connOption.Port)
+func (sq *RepositorySqlite) Connect(ctx context.Context) error {
+	dsn := fmt.Sprintf("file:%s", sq.connOption.Path)
 
 	operationTimezone := time.UTC
-	if pg.tz != nil {
-		operationTimezone = pg.tz
+	if sq.tz != nil {
+		operationTimezone = sq.tz
 	}
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{
 		// disable transaction that enable by default on any operation
 		// see: https://gorm.io/docs/transactions.html#Disable-Default-Transaction
 		SkipDefaultTransaction: true,
@@ -90,17 +88,15 @@ func (pg *RepositoryPostgres) Connect(ctx context.Context) error {
 		return fmt.Errorf("error connecting database: [%s] %v", dsn, err)
 	}
 
-	pg.db = db
-
+	sq.db = db
 	return nil
 }
-
-func (pg *RepositoryPostgres) Close() error {
-	if pg.db == nil {
+func (sq *RepositorySqlite) Close() error {
+	if sq.db == nil {
 		return nil
 	}
 
-	sqlDB, err := pg.db.DB()
+	sqlDB, err := sq.db.DB()
 	if err != nil {
 		return fmt.Errorf("error getting db connection instance: %v", err)
 	}
@@ -113,6 +109,6 @@ func (pg *RepositoryPostgres) Close() error {
 	return nil
 }
 
-func (pg *RepositoryPostgres) GetDB() *gorm.DB {
-	return pg.db
+func (sq *RepositorySqlite) GetDB() *gorm.DB {
+	return sq.db
 }

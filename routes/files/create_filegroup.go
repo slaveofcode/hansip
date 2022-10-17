@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/slaveofcode/hansip/repository/pg"
-	"github.com/slaveofcode/hansip/repository/pg/models"
+	"github.com/slaveofcode/hansip/repository"
+	"github.com/slaveofcode/hansip/repository/models"
 	"github.com/slaveofcode/hansip/routes/middleware"
 )
 
@@ -13,7 +13,7 @@ type FileGroupParam struct {
 	ArchiveType models.ArchiveType `json:"archiveType" binding:"required"`
 }
 
-func CreateFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
+func CreateFileGroup(repo repository.Repository) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		userId, err := middleware.GetUserId(c)
 		if err != nil {
@@ -36,12 +36,11 @@ func CreateFileGroup(repo *pg.RepositoryPostgres) func(c *gin.Context) {
 		db := repo.GetDB()
 
 		fg := models.FileGroup{
-			UserId:                &userId,
+			UserId:                userId,
 			ArchiveType:           bodyParams.ArchiveType,
 			MaxDownload:           0,
 			DeleteAtDownloadTimes: 0,
 			TotalFiles:            0,
-			SharedToUserIds:       []string{},
 		}
 
 		res := db.Create(&fg)

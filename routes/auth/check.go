@@ -6,15 +6,15 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/slaveofcode/hansip/repository/pg"
-	"github.com/slaveofcode/hansip/repository/pg/models"
+	"github.com/slaveofcode/hansip/repository"
+	"github.com/slaveofcode/hansip/repository/models"
 )
 
 type requestHeader struct {
 	Authorization string `header:"Authorization"`
 }
 
-func CheckToken(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
+func CheckToken(repo repository.Repository) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		h := requestHeader{}
 		if err := c.ShouldBindHeader(&h); err != nil {
@@ -35,7 +35,7 @@ func CheckToken(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 		}
 
 		bearer := bearers[1]
-		db := pgRepo.GetDB()
+		db := repo.GetDB()
 
 		var acct models.AccessToken
 		res := db.Where(&models.AccessToken{

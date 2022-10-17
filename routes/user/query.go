@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/slaveofcode/hansip/repository/pg"
-	"github.com/slaveofcode/hansip/repository/pg/models"
+	"github.com/slaveofcode/hansip/repository"
+	"github.com/slaveofcode/hansip/repository/models"
 )
 
 const (
@@ -17,12 +17,12 @@ type UserQuery struct {
 }
 
 type userResults struct {
-	ID    string `json:"id"`
+	ID    uint64 `json:"id"`
 	Name  string `json:"name"`
 	Alias string `json:"alias"`
 }
 
-func UserQueries(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
+func UserQueries(repo repository.Repository) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var query UserQuery
 		if err := c.ShouldBindQuery(&query); err != nil {
@@ -33,7 +33,7 @@ func UserQueries(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 			return
 		}
 
-		db := pgRepo.GetDB()
+		db := repo.GetDB()
 
 		var users []models.User
 		res := db.Where(`"name" ILIKE ? OR "alias" ILIKE ?`, "%"+query.Keyword+"%", "%"+query.Keyword+"%").
@@ -54,7 +54,7 @@ func UserQueries(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 
 		for _, user := range users {
 			results = append(results, userResults{
-				ID:    user.ID.String(),
+				ID:    user.ID,
 				Name:  user.Name,
 				Alias: user.Alias,
 			})

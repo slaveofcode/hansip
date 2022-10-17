@@ -13,8 +13,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-gonic/gin"
 	"github.com/slaveofcode/hansip/age_encryption"
-	"github.com/slaveofcode/hansip/repository/pg"
-	"github.com/slaveofcode/hansip/repository/pg/models"
+	"github.com/slaveofcode/hansip/repository"
+	"github.com/slaveofcode/hansip/repository/models"
 	"github.com/slaveofcode/hansip/utils/aes"
 	"github.com/slaveofcode/hansip/utils/config"
 	userHelper "github.com/slaveofcode/hansip/utils/user"
@@ -29,7 +29,7 @@ type FileOpenParam struct {
 	UserPassword string `json:"accountPassword" binding:"omitempty"`
 }
 
-func Download(pgRepo *pg.RepositoryPostgres, s3Client *s3.Client) func(c *gin.Context) {
+func Download(repo repository.Repository, s3Client *s3.Client) func(c *gin.Context) {
 
 	if config.IsUsingS3Storage() && downloadManager == nil {
 		downloadManager = manager.NewDownloader(s3Client)
@@ -47,7 +47,7 @@ func Download(pgRepo *pg.RepositoryPostgres, s3Client *s3.Client) func(c *gin.Co
 			return
 		}
 
-		db := pgRepo.GetDB()
+		db := repo.GetDB()
 
 		var shortLink models.ShortLink
 		res := db.Preload("FileGroup").Where(`"shortCode" = ?`, code).First(&shortLink)
@@ -55,6 +55,16 @@ func Download(pgRepo *pg.RepositoryPostgres, s3Client *s3.Client) func(c *gin.Co
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"success": false,
 				"message": "Unknown file",
+			})
+			return
+		}
+
+		var fileGroupUsers []models.FileGroupUser
+		res = db.Where(`"fileGroupId" = ?`, shortLink.FileGroupId).Find(&fileGroupUsers)
+		if res.Error != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"message": "Failed getting user sharing info:" + res.Error.Error(),
 			})
 			return
 		}
@@ -96,15 +106,15 @@ func Download(pgRepo *pg.RepositoryPostgres, s3Client *s3.Client) func(c *gin.Co
 			}
 		}
 
-		userId := ""
+		var userId uint64
 		isAllowedToDownload := true
-		isPrivateMembersOnly := len(shortLink.FileGroup.SharedToUserIds) > 0
+		isPrivateMembersOnly := len(fileGroupUsers) > 0
 		if isPrivateMembersOnly {
 			isAllowedToDownload = false
 
 			tokenHeader := c.Request.Header["Authorization"]
 			if len(tokenHeader) > 0 {
-				user, err := userHelper.GetUserFromHeaderAuth(pgRepo, tokenHeader[0])
+				user, err := userHelper.GetUserFromHeaderAuth(repo, tokenHeader[0])
 				if err != nil {
 					c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
 						"success": false,
@@ -113,10 +123,10 @@ func Download(pgRepo *pg.RepositoryPostgres, s3Client *s3.Client) func(c *gin.Co
 					return
 				}
 
-				for _, uid := range shortLink.FileGroup.SharedToUserIds {
-					if uid == user.ID.String() {
+				for _, fgu := range fileGroupUsers {
+					if fgu.UserId == user.ID {
 						isAllowedToDownload = true
-						userId = user.ID.String()
+						userId = user.ID
 						break
 					}
 				}
@@ -131,7 +141,7 @@ func Download(pgRepo *pg.RepositoryPostgres, s3Client *s3.Client) func(c *gin.Co
 			return
 		}
 
-		if userId != "" {
+		if userId != 0 {
 			var userCred models.UserCredential
 			res = db.Where(`"userId" = ?`, userId).First(&userCred)
 			err := bcrypt.CompareHashAndPassword([]byte(userCred.CredentialValue), []byte(bodyParams.UserPassword))

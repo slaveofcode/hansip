@@ -4,16 +4,15 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
-	"github.com/slaveofcode/hansip/repository/pg"
-	"github.com/slaveofcode/hansip/repository/pg/models"
+	"github.com/slaveofcode/hansip/repository"
+	"github.com/slaveofcode/hansip/repository/models"
 	userHelper "github.com/slaveofcode/hansip/utils/user"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 type FileResponse struct {
-	FileId   string               `json:"fileId"`
+	FileId   uint64               `json:"fileId"`
 	FileName string               `json:"fileName"`
 	FileType models.PreviewAsType `json:"fileType"`
 	FileSize int64                `json:"fileSize"`
@@ -24,18 +23,18 @@ type FileOpenParam struct {
 	UserPassword string `json:"accountPassword" binding:"omitempty"`
 }
 
-func getFiles(db *gorm.DB, fileGroupId *uuid.UUID) ([]FileResponse, error) {
+func getFiles(db *gorm.DB, fileGroupId uint64) ([]FileResponse, error) {
 	files := []FileResponse{}
 
 	var fileItems []models.FileItem
-	res := db.Where(`"fileGroupId" = ?`, fileGroupId.String()).Find(&fileItems)
+	res := db.Where(`"fileGroupId" = ?`, fileGroupId).Find(&fileItems)
 	if res.RowsAffected <= 0 {
 		return files, nil
 	}
 
 	for _, fileItem := range fileItems {
 		files = append(files, FileResponse{
-			FileId:   fileItem.ID.String(),
+			FileId:   fileItem.ID,
 			FileName: fileItem.Realname,
 			FileType: fileItem.PreviewAs,
 			FileSize: fileItem.SizeInBytes,
@@ -45,7 +44,7 @@ func getFiles(db *gorm.DB, fileGroupId *uuid.UUID) ([]FileResponse, error) {
 	return files, nil
 }
 
-func View(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
+func View(pgRepo repository.Repository) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		code := c.Param("code")
 
@@ -68,8 +67,18 @@ func View(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 			files, _ = getFiles(db, shortLink.FileGroupId)
 		}
 
+		var fileGroupUsers []models.FileGroupUser
+		res = db.Where(`"fileGroupId" = ?`, shortLink.FileGroupId).Find(&fileGroupUsers)
+		if res.Error != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"message": "Failed getting user sharing info:" + res.Error.Error(),
+			})
+			return
+		}
+
 		isAllowedToOpen := true
-		isNeedLogin := len(shortLink.FileGroup.SharedToUserIds) > 0
+		isNeedLogin := len(fileGroupUsers) > 0
 		if isNeedLogin {
 			isAllowedToOpen = false
 			tokenHeader := c.Request.Header["Authorization"]
@@ -83,8 +92,8 @@ func View(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 					return
 				}
 
-				for _, uid := range shortLink.FileGroup.SharedToUserIds {
-					if uid == user.ID.String() {
+				for _, fgu := range fileGroupUsers {
+					if fgu.UserId == user.ID {
 						isAllowedToOpen = true
 						break
 					}
@@ -104,7 +113,7 @@ func View(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 	}
 }
 
-func ViewProtected(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
+func ViewProtected(repo repository.Repository) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		code := c.Param("code")
 
@@ -117,7 +126,7 @@ func ViewProtected(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 			return
 		}
 
-		db := pgRepo.GetDB()
+		db := repo.GetDB()
 
 		var shortLink models.ShortLink
 		res := db.Preload("FileGroup").Where(`"shortCode" = ?`, code).First(&shortLink)
@@ -140,14 +149,24 @@ func ViewProtected(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 			}
 		}
 
+		var fileGroupUsers []models.FileGroupUser
+		res = db.Where(`"fileGroupId" = ?`, shortLink.FileGroupId).Find(&fileGroupUsers)
+		if res.Error != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"message": "Failed getting user sharing info:" + res.Error.Error(),
+			})
+			return
+		}
+
 		isAllowedToOpen := true
-		isNeedLogin := len(shortLink.FileGroup.SharedToUserIds) > 0
+		isNeedLogin := len(fileGroupUsers) > 0
 		var user *models.User = nil
 		if isNeedLogin {
 			isAllowedToOpen = false
 			tokenHeader := c.Request.Header["Authorization"]
 			if len(tokenHeader) > 0 {
-				userAuth, err := userHelper.GetUserFromHeaderAuth(pgRepo, tokenHeader[0])
+				userAuth, err := userHelper.GetUserFromHeaderAuth(repo, tokenHeader[0])
 				if err != nil {
 					c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
 						"success": false,
@@ -158,8 +177,8 @@ func ViewProtected(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 
 				user = userAuth
 
-				for _, uid := range shortLink.FileGroup.SharedToUserIds {
-					if uid == user.ID.String() {
+				for _, fgu := range fileGroupUsers {
+					if fgu.UserId == user.ID {
 						isAllowedToOpen = true
 						break
 					}
@@ -176,7 +195,7 @@ func ViewProtected(pgRepo *pg.RepositoryPostgres) func(c *gin.Context) {
 		}
 
 		var userCred models.UserCredential
-		res = db.Where(`"userId" = ?`, user.ID.String()).First(&userCred)
+		res = db.Where(`"userId" = ?`, user.ID).First(&userCred)
 		err := bcrypt.CompareHashAndPassword([]byte(userCred.CredentialValue), []byte(bodyParams.UserPassword))
 		if res.RowsAffected == 0 || err != nil {
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{

@@ -46,5 +46,5 @@ jobs:
         goversion: https://go.dev/dl/go1.19.2.linux-amd64.tar.gz
         executable_compression: upx
         binary_name: "hansip-server"
-        pre_command: echo "path:" && echo $PWD && echo $RUNNER_WORKSPACE && ls -lah $RUNNER_WORKSPACE
+        pre_command: echo "path:" && echo $PWD && echo $RUNNER_WORKSPACE && ls -lah $PWD
         extra_files: LICENSE README.md ${{ env.HWB }}

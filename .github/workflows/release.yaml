@@ -29,18 +29,15 @@ jobs:
         if [[ "${{ matrix.goos }}" = "windows" ]];
         then
           FURL="https://github.com/slaveofcode/hansip-webserver/releases/download/${{ env.hansip-webserver-ver }}/hansip-web-server-${{ env.hansip-webserver-ver }}-${{ matrix.goos }}-${{ matrix.goarch }}.zip"
+          wget $FURL -O hansip-web-server.zip
+          unzip hansip-web-server.zip
+          echo "HWB=hansip-web-server/hansip-web-server.exe" >> $GITHUB_ENV
         else
           FURL="https://github.com/slaveofcode/hansip-webserver/releases/download/${{ env.hansip-webserver-ver }}/hansip-web-server-${{ env.hansip-webserver-ver }}-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz"
+          wget $FURL -O hansip-web-server.tar.gz
+          tar -zxvf hansip-web-server.tar.gz
+          echo "HWB=hansip-web-server/hansip-web-server" >> $GITHUB_ENV
         fi
-        wget $FURL -O hansip-web-server.tar.gz
-        tar -zxvf hansip-web-server.tar.gz
-        echo "HWB=hansip-web-server" >> $GITHUB_ENV
-    # - name: Download hansip-webserver Unix
-    #   if: matrix.goos == 'windows'
-    #   run: |
-    #     wget https://github.com/slaveofcode/hansip-webserver/releases/download/${{ env.hansip-webserver-ver }}/hansip-web-server-${{ env.hansip-webserver-ver }}-${{ matrix.goos }}-${{ matrix.goarch }}.zip -O hansip-web-server.zip
-    #     unzip hansip-web-server.zip
-    #     echo "HWB=hansip-web-server" >> $GITHUB_ENV
     - uses: wangyoucao577/go-release-action@v1.32
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}

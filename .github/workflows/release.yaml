@@ -31,12 +31,12 @@ jobs:
           FURL="https://github.com/slaveofcode/hansip-webserver/releases/download/${{ env.hansip-webserver-ver }}/hansip-web-server-${{ env.hansip-webserver-ver }}-${{ matrix.goos }}-${{ matrix.goarch }}.zip"
           wget $FURL -O hansip-web-server.zip
           unzip hansip-web-server.zip -d hansip-web-server
-          echo "HWB=$(PWD)/hansip-web-server/hansip-web-server.exe" >> $GITHUB_ENV
+          echo "HWB=$PWD/hansip-web-server/hansip-web-server.exe" >> $GITHUB_ENV
         else
           FURL="https://github.com/slaveofcode/hansip-webserver/releases/download/${{ env.hansip-webserver-ver }}/hansip-web-server-${{ env.hansip-webserver-ver }}-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz"
           wget $FURL -O hansip-web-server.tar.gz
           tar -zxvf hansip-web-server.tar.gz
-          echo "HWB=$(PWD)/hansip-web-server/hansip-web-server" >> $GITHUB_ENV
+          echo "HWB=$PWD/hansip-web-server/hansip-web-server" >> $GITHUB_ENV
         fi
     - uses: wangyoucao577/go-release-action@v1.32
       with:

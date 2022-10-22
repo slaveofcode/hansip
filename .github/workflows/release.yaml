@@ -35,6 +35,7 @@ jobs:
         else
           FURL="https://github.com/slaveofcode/hansip-webserver/releases/download/${{ env.hansip-webserver-ver }}/hansip-web-server-${{ env.hansip-webserver-ver }}-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz"
           wget $FURL -O hansip-web-server.tar.gz
+          mkdir hansip-web-server
           tar -zxvf hansip-web-server.tar.gz --directory hansip-web-server
           echo "HWB=$PWD/hansip-web-server" >> $GITHUB_ENV
         fi

@@ -48,4 +48,4 @@ jobs:
         goversion: https://go.dev/dl/go1.19.2.linux-amd64.tar.gz
         executable_compression: upx
         binary_name: "hansip-server"
-        extra_files: LICENSE README.md config.example.yaml $RUNNER_WORKSPACE/${{ env.HWB }}
+        extra_files: LICENSE README.md config.example.yaml ${{ env.HWB }}

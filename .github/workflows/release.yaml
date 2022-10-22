@@ -5,6 +5,9 @@ on:
     branches:
       - release/v0.1.0
 
+env:
+  hansip-webserver-ver: v0.1.0
+
 jobs:
   release-linux-amd64:
     name: Release Go Binary
@@ -12,7 +15,6 @@ jobs:
     strategy:
       matrix:
         # build and publish in parallel: linux/386, linux/amd64, linux/arm64, windows/386, windows/amd64, darwin/amd64, darwin/arm64
-        hansip-webserver-ver: v0.1.0
         goos: [linux, windows, darwin]
         goarch: ["386", amd64, arm64]
         exclude:
@@ -25,13 +27,15 @@ jobs:
     - name: Download hansip-webserver Windows
       if: matrix.goos == 'windows'
       run: |
-        wget https://github.com/slaveofcode/hansip-webserver/releases/download/${{ matrix.hansip-webserver-ver }}/hansip-web-server-${{ matrix.hansip-webserver-ver }}-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz hansip-web-server.tar.gz
+        wget https://github.com/slaveofcode/hansip-webserver/releases/download/${{ env.hansip-webserver-ver }}/hansip-web-server-${{ env.hansip-webserver-ver }}-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz hansip-web-server.tar.gz
         tar -zxvf hansip-web-server.tar.gz
+        echo "HWB=hansip-web-server" >> $GITHUB_ENV
     - name: Download hansip-webserver Unix
       if: matrix.goos != 'windows'
       run: |
-        wget https://github.com/slaveofcode/hansip-webserver/releases/download/${{ matrix.hansip-webserver-ver }}/hansip-web-server-${{ matrix.hansip-webserver-ver }}-${{ matrix.goos }}-${{ matrix.goarch }}.zip hansip-web-server.zip
+        wget https://github.com/slaveofcode/hansip-webserver/releases/download/${{ env.hansip-webserver-ver }}/hansip-web-server-${{ env.hansip-webserver-ver }}-${{ matrix.goos }}-${{ matrix.goarch }}.zip hansip-web-server.zip
         unzip hansip-web-server.zip
+        echo "HWB=hansip-web-server" >> $GITHUB_ENV
     - uses: wangyoucao577/go-release-action@v1.32
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -41,4 +45,4 @@ jobs:
         executable_compression: upx
         binary_name: "hansip-server"
         pre_command: ls -lah
-        extra_files: LICENSE README.md hansip-web-server-v0.1.0-${{ matrix.goos }}-${{ matrix.goarch }}.$(RELEASE_ASSET_EXT)
+        extra_files: LICENSE README.md ${{ env.HWB }}

@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         # build and publish in parallel: linux/386, linux/amd64, linux/arm64, windows/386, windows/amd64, darwin/amd64, darwin/arm64
-        hansip-webserver-ver: 
+        hansip-webserver-ver: v0.1.0
         goos: [linux, windows, darwin]
         goarch: ["386", amd64, arm64]
         exclude:
@@ -25,12 +25,12 @@ jobs:
     - name: Download hansip-webserver Windows
       if: matrix.goos == 'windows'
       run: |
-        wget https://github.com/slaveofcode/hansip-webserver/releases/download/v0.1.0/hansip-web-server-v0.1.0-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz hansip-web-server.tar.gz
+        wget https://github.com/slaveofcode/hansip-webserver/releases/download/${{ matrix.hansip-webserver-ver }}/hansip-web-server-${{ matrix.hansip-webserver-ver }}-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz hansip-web-server.tar.gz
         tar -zxvf hansip-web-server.tar.gz
     - name: Download hansip-webserver Unix
       if: matrix.goos != 'windows'
       run: |
-        wget https://github.com/slaveofcode/hansip-webserver/releases/download/v0.1.0/hansip-web-server-v0.1.0-${{ matrix.goos }}-${{ matrix.goarch }}.zip hansip-web-server.zip
+        wget https://github.com/slaveofcode/hansip-webserver/releases/download/${{ matrix.hansip-webserver-ver }}/hansip-web-server-${{ matrix.hansip-webserver-ver }}-${{ matrix.goos }}-${{ matrix.goarch }}.zip hansip-web-server.zip
         unzip hansip-web-server.zip
     - uses: wangyoucao577/go-release-action@v1.32
       with:

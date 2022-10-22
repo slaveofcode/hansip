@@ -29,5 +29,5 @@ jobs:
         goversion: https://go.dev/dl/go1.19.2.linux-amd64.tar.gz
         executable_compression: upx
         binary_name: "hansip-server"
-        pre_command: wget https://github.com/slaveofcode/hansip-webserver/releases/download/v0.1.0/hansip-web-server-v0.1.0-${{ matrix.goos }}-${{ matrix.goarch }}.$RELEASE_ASSET_EXT
+        pre_command: wget https://github.com/slaveofcode/hansip-webserver/releases/download/v0.1.0/hansip-web-server-v0.1.0-${{ matrix.goos }}-${{ matrix.goarch }}.$(RELEASE_ASSET_EXT)
         extra_files: LICENSE README.md hansip-web-server-v0.1.0-${{ matrix.goos }}-${{ matrix.goarch }}.$(RELEASE_ASSET_EXT)

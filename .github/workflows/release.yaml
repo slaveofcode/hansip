@@ -30,7 +30,7 @@ jobs:
         then
           FURL="https://github.com/slaveofcode/hansip-webserver/releases/download/${{ env.hansip-webserver-ver }}/hansip-web-server-${{ env.hansip-webserver-ver }}-${{ matrix.goos }}-${{ matrix.goarch }}.zip"
           wget $FURL -O hansip-web-server.zip
-          unzip hansip-web-server.zip
+          unzip hansip-web-server.zip -d hansip-web-server
           echo "HWB=hansip-web-server/hansip-web-server.exe" >> $GITHUB_ENV
         else
           FURL="https://github.com/slaveofcode/hansip-webserver/releases/download/${{ env.hansip-webserver-ver }}/hansip-web-server-${{ env.hansip-webserver-ver }}-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz"

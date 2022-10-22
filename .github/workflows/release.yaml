@@ -47,6 +47,6 @@ jobs:
         goversion: https://go.dev/dl/go1.19.2.linux-amd64.tar.gz
         executable_compression: upx
         binary_name: "hansip-server"
-        pre_command: cp $PWD/hansip-web-server/${{ env.HWB }} ${{ env.HWB }}
-        extra_files: LICENSE README.md config.example.yaml ${{ env.HWB }}
-        # extra_files: LICENSE README.md config.example.yaml /github/workspace/hansip-web-server
+        # pre_command: cp $PWD/hansip-web-server/${{ env.HWB }} ${{ env.HWB }}
+        # extra_files: LICENSE README.md config.example.yaml ${{ env.HWB }}
+        extra_files: LICENSE README.md config.example.yaml /github/workspace/hansip-web-server

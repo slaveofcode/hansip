@@ -47,5 +47,6 @@ jobs:
         goarch: ${{ matrix.goarch }}
         goversion: https://go.dev/dl/go1.19.2.linux-amd64.tar.gz
         pre_command: "apt-get update && apt-get install -y build-essential && export CGO_ENABLED=1"
+        ldflags: -a -ldflags "-linkmode external -extldflags '-static' -s -w"
         binary_name: "hansip-server"
         extra_files: LICENSE README.md config.example.yaml ${{ env.HWB }}

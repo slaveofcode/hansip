@@ -25,9 +25,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Download hansip-webserver Windows
-      if: matrix.goos != 'windows'
       run: |
-        FURL=https://github.com/slaveofcode/hansip-webserver/releases/download/${{ env.hansip-webserver-ver }}/hansip-web-server-${{ env.hansip-webserver-ver }}-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz; if [[ matrix.goos = "windows" ]] FURL=https://github.com/slaveofcode/hansip-webserver/releases/download/${{ env.hansip-webserver-ver }}/hansip-web-server-${{ env.hansip-webserver-ver }}-${{ matrix.goos }}-${{ matrix.goarch }}.zip;
+        FURL=https://github.com/slaveofcode/hansip-webserver/releases/download/${{ env.hansip-webserver-ver }}/hansip-web-server-${{ env.hansip-webserver-ver }}-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz; if [[ $matrix.goos = "windows" ]] FURL=https://github.com/slaveofcode/hansip-webserver/releases/download/${{ env.hansip-webserver-ver }}/hansip-web-server-${{ env.hansip-webserver-ver }}-${{ matrix.goos }}-${{ matrix.goarch }}.zip;
         wget $FURL -O hansip-web-server.tar.gz
         tar -zxvf hansip-web-server.tar.gz
         echo "HWB=hansip-web-server" >> $GITHUB_ENV

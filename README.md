@@ -3,16 +3,27 @@
 
 # Hansip
 
-Simple file sharing with End-to-End encryption for small/medium organization.
+Simple file sharing server with support End-to-End encryption, perfect for personal, small or medium organization.
 
-### Server Requirements
+### Setup & Running
 
-1. Golang 1.18 or newer
-2. Postgres 12 or newer
+1. Download the program according to your OS & system architecture from [the latest release](https://github.com/slaveofcode/hansip/releases/latest) and extract the files.
 
-### Configuration
+2. Copy example config YAML file `config.example.yaml` and rename as `config.yaml`, by default will use SQLite3 database.
 
-Copy config YAML file at `config.example.yaml` and rename as `config.yaml`
+3. Run the Backend Server
+
+    chmod +x hansip-server
+
+    ./hansip-server
+
+4. Run the Web Server (SPA Vue)
+
+    chmod +x hansip-web-server
+
+    ./hansip-web-server
+
+5. Open the browser and go to http://localhost:8181 to see the interface and start playing.
 
 ### Screenshots
 

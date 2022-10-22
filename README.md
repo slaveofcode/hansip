@@ -9,7 +9,6 @@ Simple file sharing with End-to-End encryption for small/medium organization.
 
 1. Golang 1.18 or newer
 2. Postgres 12 or newer
-3. File Storage with AWS S3 (Optional)
 
 ### Configuration
 

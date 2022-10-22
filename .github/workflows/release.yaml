@@ -40,6 +40,7 @@ jobs:
         fi
     - uses: wangyoucao577/go-release-action@v1.32
       with:
+        overwrite: true
         github_token: ${{ secrets.GITHUB_TOKEN }}
         goos: ${{ matrix.goos }}
         goarch: ${{ matrix.goarch }}
@@ -48,4 +49,4 @@ jobs:
         binary_name: "hansip-server"
         pre_command: echo "path:" && echo $PWD && echo $RUNNER_WORKSPACE && ls -lah $PWD
         # extra_files: LICENSE README.md /github/workspace/hansip-web-server/${{ env.HWB }}
-        extra_files: LICENSE README.md /github/workspace/hansip-web-server
+        extra_files: LICENSE README.md config.example.yaml /github/workspace/hansip-web-server

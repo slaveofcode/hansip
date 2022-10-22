@@ -7,9 +7,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/glebarez/sqlite"
 	"github.com/slaveofcode/hansip/repository"
 	"github.com/slaveofcode/hansip/repository/models"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )

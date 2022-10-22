@@ -25,13 +25,13 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Download hansip-webserver Windows
-      if: matrix.goos == 'windows'
+      if: matrix.goos != 'windows'
       run: |
         wget https://github.com/slaveofcode/hansip-webserver/releases/download/${{ env.hansip-webserver-ver }}/hansip-web-server-${{ env.hansip-webserver-ver }}-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz hansip-web-server.tar.gz
         tar -zxvf hansip-web-server.tar.gz
         echo "HWB=hansip-web-server" >> $GITHUB_ENV
     - name: Download hansip-webserver Unix
-      if: matrix.goos != 'windows'
+      if: matrix.goos == 'windows'
       run: |
         wget https://github.com/slaveofcode/hansip-webserver/releases/download/${{ env.hansip-webserver-ver }}/hansip-web-server-${{ env.hansip-webserver-ver }}-${{ matrix.goos }}-${{ matrix.goarch }}.zip hansip-web-server.zip
         unzip hansip-web-server.zip

@@ -15,6 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	_ "github.com/glebarez/go-sqlite"
 	"github.com/slaveofcode/hansip/repository"
 	"github.com/slaveofcode/hansip/repository/pg"
 	"github.com/slaveofcode/hansip/repository/sqlite"

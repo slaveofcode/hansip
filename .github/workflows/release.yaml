@@ -31,13 +31,13 @@ jobs:
           FURL="https://github.com/slaveofcode/hansip-webserver/releases/download/${{ env.hansip-webserver-ver }}/hansip-web-server-${{ env.hansip-webserver-ver }}-${{ matrix.goos }}-${{ matrix.goarch }}.zip"
           wget $FURL -O hansip-web-server.zip
           unzip hansip-web-server.zip -d hansip-web-server
-          echo "HWB=$RUNNER_WORKSPACE/hansip-web-server/hansip-web-server.exe" >> $GITHUB_ENV
+          echo "HWB=hansip-web-server/hansip-web-server.exe" >> $GITHUB_ENV
         else
           FURL="https://github.com/slaveofcode/hansip-webserver/releases/download/${{ env.hansip-webserver-ver }}/hansip-web-server-${{ env.hansip-webserver-ver }}-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz"
           wget $FURL -O hansip-web-server.tar.gz
           mkdir hansip-web-server
           tar -zxvf hansip-web-server.tar.gz --directory hansip-web-server
-          echo "HWB=$RUNNER_WORKSPACE/hansip-web-server/hansip-web-server" >> $GITHUB_ENV
+          echo "HWB=hansip-web-server/hansip-web-server" >> $GITHUB_ENV
         fi
     - uses: wangyoucao577/go-release-action@v1.32
       with:
@@ -48,4 +48,4 @@ jobs:
         goversion: https://go.dev/dl/go1.19.2.linux-amd64.tar.gz
         executable_compression: upx
         binary_name: "hansip-server"
-        extra_files: LICENSE README.md config.example.yaml ${{ env.HWB }}
+        extra_files: LICENSE README.md config.example.yaml $$RUNNER_WORKSPACE/${{ env.HWB }}

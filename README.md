@@ -13,17 +13,19 @@ Simple file sharing server with support End-to-End encryption, perfect for perso
 
 3. Run the Backend Server
 
-    chmod +x hansip-server
-
-    ./hansip-server
+    >chmod +x hansip-server
+    >
+    >./hansip-server
 
 4. Run the Web Server (SPA Vue)
 
-    chmod +x hansip-web-server
-
-    ./hansip-web-server
+    >chmod +x hansip-web-server
+    >
+    >./hansip-web-server
 
 5. Open the browser and go to http://localhost:8181 to see the interface and start playing.
+
+> For Mac users, You may need to allow the service to run by opening **Security & Privacy** and click **Allow Anyway**
 
 ### Screenshots
 

@@ -1,9 +1,6 @@
 on:
   release:
     types: [created]
-  push:
-    branches:
-      release/v0.1.0
 
 env:
   hansip-webserver-ver: v0.1.0

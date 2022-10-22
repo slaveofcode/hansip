@@ -33,6 +33,7 @@ jobs:
     - name: Download hansip-webserver Unix
       if: matrix.goos == 'windows'
       run: |
+        apt install unzip
         wget https://github.com/slaveofcode/hansip-webserver/releases/download/${{ env.hansip-webserver-ver }}/hansip-web-server-${{ env.hansip-webserver-ver }}-${{ matrix.goos }}-${{ matrix.goarch }}.zip -O hansip-web-server.zip
         unzip hansip-web-server.zip
         echo "HWB=hansip-web-server" >> $GITHUB_ENV

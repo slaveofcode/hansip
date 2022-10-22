@@ -47,4 +47,5 @@ jobs:
         executable_compression: upx
         binary_name: "hansip-server"
         pre_command: echo "path:" && echo $PWD && echo $RUNNER_WORKSPACE && ls -lah $PWD
-        extra_files: LICENSE README.md /github/workspace/hansip-web-server/${{ env.HWB }}
+        # extra_files: LICENSE README.md /github/workspace/hansip-web-server/${{ env.HWB }}
+        extra_files: LICENSE README.md /github/workspace/hansip-web-server

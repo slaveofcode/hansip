@@ -25,6 +25,8 @@ Simple file sharing server with support End-to-End encryption, perfect for perso
 
 5. Open the browser and go to http://localhost:8181 to see the interface and start playing.
 
+> For Mac users, You may need to allow the service to run by opening **Security & Privacy** and click **Allow Anyway**
+
 ### Screenshots
 
 <h4 align="center">Home Page</h4>

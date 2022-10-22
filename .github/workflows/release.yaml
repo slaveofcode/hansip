@@ -24,7 +24,7 @@ jobs:
             goos: windows
     steps:
     - uses: actions/checkout@v3
-    - name: Download hansip-webserver Windows
+    - name: Download hansip-webserver
       run: |
         if [[ "${{ matrix.goos }}" = "windows" ]];
         then
@@ -47,6 +47,6 @@ jobs:
         goversion: https://go.dev/dl/go1.19.2.linux-amd64.tar.gz
         executable_compression: upx
         binary_name: "hansip-server"
-        pre_command: echo "path:" && echo $PWD && echo $RUNNER_WORKSPACE && ls -lah $PWD
-        # extra_files: LICENSE README.md /github/workspace/hansip-web-server/${{ env.HWB }}
-        extra_files: LICENSE README.md config.example.yaml /github/workspace/hansip-web-server
+        pre_command: cp $PWD/hansip-web-server/${{ env.HWB }} ${{ env.HWB }}
+        extra_files: LICENSE README.md config.example.yaml ${{ env.HWB }}
+        # extra_files: LICENSE README.md config.example.yaml /github/workspace/hansip-web-server

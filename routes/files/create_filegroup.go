@@ -1,6 +1,7 @@
 package files
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -17,6 +18,7 @@ func CreateFileGroup(repo repository.Repository) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		userId, err := middleware.GetUserId(c)
 		if err != nil {
+			log.Println("error:", err.Error())
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
 				"success": false,
 				"message": "Unauthorized request",

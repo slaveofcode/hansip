@@ -13,7 +13,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/slaveofcode/hansip/age_encryption"
 	"github.com/slaveofcode/hansip/repository"
 	"github.com/slaveofcode/hansip/repository/models"
@@ -26,11 +25,11 @@ import (
 )
 
 type BundleFileGroupParam struct {
-	FileGroupId      uuid.UUID `json:"fileGroupId" binding:"required"`
-	ExpiredAt        string    `json:"expiredAt" binding:"required,datetime=2006-01-02T15:04:05Z07:00"` // format UTC: 2021-07-18T10:00:00.000Z
-	Passcode         string    `json:"passcode" binding:"required,gte=6,lte=100"`
-	DownloadPassword string    `json:"downloadPassword" binding:"omitempty,gte=6,lte=100"`
-	UserIds          []uint64  `json:"userIds" binding:"omitempty"`
+	FileGroupId      uint64   `json:"fileGroupId" binding:"required"`
+	ExpiredAt        string   `json:"expiredAt" binding:"required,datetime=2006-01-02T15:04:05Z07:00"` // format UTC: 2021-07-18T10:00:00.000Z
+	Passcode         string   `json:"passcode" binding:"required,gte=6,lte=100"`
+	DownloadPassword string   `json:"downloadPassword" binding:"omitempty,gte=6,lte=100"`
+	UserIds          []uint64 `json:"userIds" binding:"omitempty"`
 }
 
 func BundleFileGroup(repo repository.Repository, s3Client *s3.Client) func(c *gin.Context) {
@@ -46,6 +45,7 @@ func BundleFileGroup(repo repository.Repository, s3Client *s3.Client) func(c *gi
 
 		var bodyParams BundleFileGroupParam
 		if err := c.ShouldBindJSON(&bodyParams); err != nil {
+			log.Println(err)
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"success": false,
 				"message": "Invalid body request",
@@ -67,7 +67,7 @@ func BundleFileGroup(repo repository.Repository, s3Client *s3.Client) func(c *gi
 		var fileGroup models.FileGroup
 		res := db.Where(
 			`id = ? AND "userId" = ? AND "bundledAt" IS NULL`,
-			bodyParams.FileGroupId.String(),
+			bodyParams.FileGroupId,
 			userId,
 		).First(&fileGroup)
 

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+### v0.1.4
+
+> 23 October 2022
+
+- Handle sqlite lock serialization
+
 ### v0.1.3
 
 > 23 October 2022

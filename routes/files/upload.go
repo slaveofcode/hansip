@@ -88,13 +88,21 @@ func Upload(repo repository.Repository) func(c *gin.Context) {
 		for {
 			err = saveFileMeta()
 			// TODO: Need better recognition for handling serialize transaction error
-			serializeErrStr := "ERROR: could not serialize access due to concurrent update (SQLSTATE 40001)"
-			if err != nil && err.Error() != serializeErrStr {
-				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-					"success": false,
-					"message": "Unable to process the file:" + err.Error(),
-				})
-				return
+			serializeErrMsgs := []string{
+				"ERROR: could not serialize access due to concurrent update (SQLSTATE 40001)",
+				"database is locked (5) (SQLITE_BUSY)",
+			}
+
+			if err != nil {
+				for _, msg := range serializeErrMsgs {
+					if err.Error() != msg {
+						c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+							"success": false,
+							"message": "Unable to process the file:" + err.Error(),
+						})
+						return
+					}
+				}
 			}
 
 			if err != nil {

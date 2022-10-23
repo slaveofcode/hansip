@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+### v0.1.2
+
+> 23 October 2022
+
+- Fixed error UserId parsing when upload files
+
 ### v0.1.1
 
 > 23 October 2022

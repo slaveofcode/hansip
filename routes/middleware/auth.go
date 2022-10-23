@@ -63,7 +63,7 @@ func UserData(repo repository.Repository) func(ctx *gin.Context) {
 			return
 		}
 
-		ctx.Set(CTX_USER_ID, acct.UserId)
+		ctx.Set(CTX_USER_ID, strconv.FormatUint(acct.UserId, 10))
 	}
 }
 

@@ -36,7 +36,7 @@ func UserQueries(repo repository.Repository) func(c *gin.Context) {
 		db := repo.GetDB()
 
 		var users []models.User
-		res := db.Where(`"name" ILIKE ? OR "alias" ILIKE ?`, "%"+query.Keyword+"%", "%"+query.Keyword+"%").
+		res := db.Where(`"name" LIKE ? OR "alias" LIKE ?`, "%"+query.Keyword+"%", "%"+query.Keyword+"%").
 			Order(`"name" ASC`).
 			Limit(LimitResultCount).
 			Offset(0).

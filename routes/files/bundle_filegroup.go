@@ -207,33 +207,35 @@ func BundleFileGroup(repo repository.Repository, s3Client *s3.Client) func(c *gi
 			return
 		}
 
-		go func(filePath string) {
-			keyName := filepath.Base(filePath)
-			bundledFile, err := os.Open(filePath)
-			if err != nil {
-				log.Printf("Error reading bundled file at %s, is the file removed? %s", filePath, err.Error())
-				return
-			}
-			defer bundledFile.Close()
+		if appConfig.IsUsingS3Storage() {
+			go func(filePath string) {
+				keyName := filepath.Base(filePath)
+				bundledFile, err := os.Open(filePath)
+				if err != nil {
+					log.Printf("Error reading bundled file at %s, is the file removed? %s", filePath, err.Error())
+					return
+				}
+				defer bundledFile.Close()
 
-			_, err = s3Client.PutObject(context.Background(), &s3.PutObjectInput{
-				Bucket:  aws.String(appConfig.GetS3Bucket()),
-				Key:     &keyName,
-				Body:    bundledFile,
-				Expires: fileGroup.ExpiredAt, // cache expiration
-			})
+				_, err = s3Client.PutObject(context.Background(), &s3.PutObjectInput{
+					Bucket:  aws.String(appConfig.GetS3Bucket()),
+					Key:     &keyName,
+					Body:    bundledFile,
+					Expires: fileGroup.ExpiredAt, // cache expiration
+				})
 
-			if err == nil {
-				fileGroup.FileKey = keyName
-				db.Save(&fileGroup)
+				if err == nil {
+					fileGroup.FileKey = keyName
+					db.Save(&fileGroup)
 
-				// remove local file because already uploaded to S3
-				os.Remove(filePath)
-				return
-			}
+					// remove local file because already uploaded to S3
+					os.Remove(filePath)
+					return
+				}
 
-			log.Println("error S3 upload", err)
-		}(fileGroup.FileKey)
+				log.Println("error S3 upload", err)
+			}(fileGroup.FileKey)
+		}
 
 		pinCode := ""
 

@@ -1,10 +1,12 @@
+# Set host & port for hansip backend server
 server_api:
-  secure: false
+  secure: false # set true if the address is https
   host: localhost
   port: 8080
 
+# Set host & port for web application server
 server_web:
-  secure: false
+  secure: false # set true if the address is https
   host: localhost
   port: 8181
 
@@ -12,13 +14,18 @@ storage:
   type: filesystem # or s3
 
 dirpaths:
-  upload: /tmp/hansip-files/uploaded
-  bundle: /tmp/hansip-files/bundled
+  # Directory when uploading files before processed 
+  upload: ./hansip-files/uploaded
+  # Directory for storing files after processed,
+  # files on bundle directory will be removed if activates S3 after successfully uploaded
+  bundle: ./hansip-files/bundled
 
 db:
   type: sqlite # or postgresql
 
 sqlite:
+  # path for sqlite database file
+  # by default will use WAL mode for better concurrency
   path: ./hansip.db
 
 postgresql:

@@ -55,3 +55,5 @@ config.yaml
 *.db
 *.db-wal
 *.db-shm
+
+hansip-files

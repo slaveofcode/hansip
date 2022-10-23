@@ -56,7 +56,7 @@ func Register(repo repository.Repository) func(c *gin.Context) {
 			}
 
 			var findExtAlias models.User
-			res = tx.Where(`"alias" ILIKE ?`, bodyParams.Alias).First(&findExtAlias)
+			res = tx.Where(`"alias" LIKE ?`, bodyParams.Alias).First(&findExtAlias)
 
 			if res.RowsAffected > 0 {
 				return errors.New("alias already exist")

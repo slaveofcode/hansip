@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+### v0.1.1
+
+> 23 October 2022
+
+- Fixed incompatible `ILIKE` query when using SQLite3 as DB ([#5](https://github.com/slaveofcode/hansip/issues/5))
+
 ### v0.1.0
 
 > 22 October 2022

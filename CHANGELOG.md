@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+### v0.1.3
+
+> 23 October 2022
+
+- Fixed error S3 when using `filesystem` mode
+- Updated `config.yaml` example for upload & bundle directory
+
 ### v0.1.2
 
 > 23 October 2022

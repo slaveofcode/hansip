@@ -10,49 +10,6 @@ import (
 	"filippo.io/age"
 )
 
-func parseIdentity() (pub string, sec string) {
-	pub = "age1fcnvt02ahjprhxye8yqhdcq8g3lfyj7a3mgqvwv29468asnya3cqm4d3zv"
-	sec = "AGE-SECRET-KEY-1VW8ZNL7SEDWTU4X8HNMQKZE5EEM2EN7KZHMQ73NTZ8HYCCSJKJEQZG9WLP"
-	return pub, sec
-	// keyFile, err := os.Open("./keys/key-pass.age")
-	// if err != nil {
-	// 	log.Fatalf("Failed to open private keys file: %v", err)
-	// }
-
-	// pass := "2d1ty2vigen" // TODO: Test only
-	// identities := []age.Identity{
-	// 	&LazyScryptIdentity{
-	// 		Passphrase: func() (string, error) {
-	// 			return pass, nil
-	// 		},
-	// 	},
-	// }
-
-	// rr := bufio.NewReader(keyFile)
-	// var in io.Reader
-	// if start, _ := rr.Peek(len(armor.Header)); string(start) == armor.Header {
-	// 	in = armor.NewReader(rr)
-	// } else {
-	// 	in = rr
-	// }
-
-	// reader, err := age.Decrypt(in, identities...)
-
-	// if err != nil {
-	// 	errorf("%v", err)
-	// }
-
-	// buf := &bytes.Buffer{}
-
-	// if _, err := io.Copy(buf, reader); err != nil {
-	// 	errorf("%v", err)
-	// }
-}
-
-func errorf(format string, v ...interface{}) {
-	log.Printf("age: error: "+format, v...)
-}
-
 func EncryptFile(filePath, locationPath string, publicKeys []string) (string, error) {
 	f, err := os.Open(filePath)
 	if err != nil {

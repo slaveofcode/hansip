@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+### v0.1.5
+
+> 24 October 2022
+
+- Removed unused function that previously used for a test
+
 ### v0.1.4
 
 > 23 October 2022
